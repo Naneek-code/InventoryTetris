@@ -688,16 +688,14 @@ function ItemContainerGrid:_getPositionedItems()
 end
 
 function ItemContainerGrid:_isItemValid(item)
-    if item:isHidden() then return false end
-    
-    if item:isEquipped() or self:_isItemInHotbar(item) then 
-        return false 
-    end
-
-    return true
+    return not item:isHidden() and (not self.isPlayerInventory or (not item:isEquipped() and not self:_isItemInHotbar(item)))
 end
 
 function ItemContainerGrid:_isItemInHotbar(item)
+    if not self.isPlayerInventory then
+        return false
+    end
+
     local hotbar = getPlayerHotbar(self.playerNum);
     if not hotbar then return false end
 
