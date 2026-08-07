@@ -1,0 +1,17 @@
+{
+    "Sandbox_InventoryTetris": "Inventory Tetris",
+    "Sandbox_InventoryTetris_EnforceCarryWeight": "Enforce Carry Weight",
+    "Sandbox_InventoryTetris_EnforceCarryWeight_tooltip": "If enabled, container weight limits are strictly enforced. (Defaults to true automatically in Multiplayer for server authority).",
+    "Sandbox_InventoryTetris_EncumbranceSlow": "Encumbrance Slowdown",
+    "Sandbox_InventoryTetris_EncumbranceSlow_tooltip": "Slows character movement speed when heavily overencumbered.",
+    "Sandbox_InventoryTetris_PreventTardisStacking": "Prevent TARDIS Stacking",
+    "Sandbox_InventoryTetris_PreventTardisStacking_tooltip": "Prevents placing containers inside other containers of equal or greater size.",
+    "Sandbox_InventoryTetris_UseItemTransferTime": "Use Item Transfer Time",
+    "Sandbox_InventoryTetris_UseItemTransferTime_tooltip": "Uses calculated timed actions for transferring items. (Singleplayer Only. Disabled in MP due to server limits).",
+    "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier": "Item Transfer Speed Multiplier",
+    "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier_tooltip": "Multiplier for how fast items transfer between containers. (Singleplayer Only. Disabled in MP due to server limits).",
+    "Sandbox_InventoryTetris_BonusGridSize": "Global Bonus Grid Size",
+    "Sandbox_InventoryTetris_BonusGridSize_tooltip": "Adds extra grid width and height to ALL inventory containers globally.",
+    "Sandbox_InventoryTetris_ItemWeightMultiplier": "Item Weight Multiplier",
+    "Sandbox_InventoryTetris_ItemWeightMultiplier_tooltip": "Scales actual Java item weights (e.g. 0.10 = 10 percent weight). Set to 1.0 to disable. Grid footprints remain fixed at original script sizes."
+}

@@ -1,0 +1,17 @@
+{
+    "Sandbox_InventoryTetris": "Inventory Tetris",
+    "Sandbox_InventoryTetris_EnforceCarryWeight": "Forçar Limite de Peso",
+    "Sandbox_InventoryTetris_EnforceCarryWeight_tooltip": "Se ativado, o limite de peso do contêiner é estritamente forçado.",
+    "Sandbox_InventoryTetris_EncumbranceSlow": "Lentidão por Carga",
+    "Sandbox_InventoryTetris_EncumbranceSlow_tooltip": "Diminui a velocidade de movimento quando o personagem está muito sobrecarregado.",
+    "Sandbox_InventoryTetris_PreventTardisStacking": "Impedir Empilhamento TARDIS",
+    "Sandbox_InventoryTetris_PreventTardisStacking_tooltip": "Impede colocar contêineres dentro de outros contêineres de tamanho igual ou maior.",
+    "Sandbox_InventoryTetris_UseItemTransferTime": "Usar Tempo de Transferência",
+    "Sandbox_InventoryTetris_UseItemTransferTime_tooltip": "Usa ações de tempo calculadas para transferir itens entre contêineres. (Apenas Singleplayer. Desativado no MP por limites do servidor).",
+    "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier": "Multiplicador de Velocidade de Transferência",
+    "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier_tooltip": "Multiplicador de quão rápido os itens são transferidos. (Apenas Singleplayer. Desativado no MP por limites do servidor).",
+    "Sandbox_InventoryTetris_BonusGridSize": "Bônus Global de Tamanho de Grade",
+    "Sandbox_InventoryTetris_BonusGridSize_tooltip": "Adiciona largura e altura extras de grade a TODOS os contêineres.",
+    "Sandbox_InventoryTetris_ItemWeightMultiplier": "Multiplicador de Peso dos Itens",
+    "Sandbox_InventoryTetris_ItemWeightMultiplier_tooltip": "Escala o peso real dos itens no Java (ex: 0.10 = 10 por cento do peso). Mantenha em 1.0 para desativar. O formato dos blocos no Tetris permanece fixo no tamanho original."
+}
