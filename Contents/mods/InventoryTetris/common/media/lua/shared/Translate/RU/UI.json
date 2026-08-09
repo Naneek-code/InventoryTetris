@@ -6,5 +6,22 @@
     "UI_optionscreen_binding_tetris_close_window": "Закрыть всплывающее окно",
     "UI_tetris_options_grid_scale": "Масштаб сетки",
     "UI_tetris_options_container_info_scale": "Масштаб информации контейнера",
-    "UI_optionscreen_binding_InventoryTetris": "Инвентарь-Тетрис"
+    "UI_optionscreen_binding_InventoryTetris": "Инвентарь-Тетрис",
+    "UI_optionscreen_binding_EquipmentUI": "Меню экипировки",
+    "UI_optionscreen_binding_equipment_toggle_window": "Открыть меню экипировки",
+    "UI_equipment_options_scale": "Масштаб меню экипировки",
+    "UI_equipment_options_hide_equipped_items": "Спрятать экипированные предметы",
+    "UI_equipment_equipment": "Экипировка",
+    "UI_equipment_hotbar": "Панель быстрого доступа",
+    "UI_equipment_head": "Голова",
+    "UI_equipment_face": "Лицо",
+    "UI_equipment_torso": "Торс",
+    "UI_equipment_vest": "Жилет",
+    "UI_equipment_back": "Спина",
+    "UI_equipment_waist": "Живот",
+    "UI_equipment_left_hand": "Левая Рука",
+    "UI_equipment_right_hand": "Правая Рука",
+    "UI_equipment_jewelry": "Бижутерия",
+    "UI_equipment_legs": "Ноги",
+    "UI_equipment_feet": "Ступни"
 }

@@ -1,7 +1,9 @@
+-- Smangsty: Keep key rings available to vanilla systems without showing them as Tetris backpack panes.
 ---@diagnostic disable: duplicate-set-field
 
 require("ISUI/ISInventoryPage")
 require("ISUI/ISInventoryPaneContextMenu")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 
 Events.OnGameBoot.Add(function()
 
@@ -19,9 +21,7 @@ Events.OnGameBoot.Add(function()
     function ISInventoryPage:addContainerButton(container, texture, name, tooltip)
         local button = og_addContainerButton(self, container, texture, name, tooltip)
 
-        local containingItem = container:getContainingItem()
-        local isKeyRing = containingItem and containingItem:hasTag(ItemTag.KEY_RING)
-        if (isKeyRing) then
+        if KeyRingSupport.isContainer(container) then
             self.containerButtonPanel:removeChild(button)
             self.backpacks[#self.backpacks] = nil
             -- Prepend the button to buttonPool.

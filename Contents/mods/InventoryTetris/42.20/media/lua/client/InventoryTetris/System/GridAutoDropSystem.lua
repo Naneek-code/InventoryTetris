@@ -1,5 +1,5 @@
-local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 local ItemUtil = require("Notloc/ItemUtil")
 
 -- Responsible for forcing items out of the player's inventory when it slips into an invalid state
@@ -7,20 +7,24 @@ local GridAutoDropSystem = {}
 
 GridAutoDropSystem._dropQueues = {}
 
+-- Smangsty: Keys inside vanilla key-ring containers are exempt from spatial auto-drop.
+local function isInsideKeyRing(item)
+    return KeyRingSupport.isContainer(item and item:getContainer())
+end
+
 function GridAutoDropSystem._processItems(playerNum, items)
     local playerObj = getSpecificPlayer(playerNum)
     if not playerObj or playerObj:isDead() then return end
 
     local isDisorganized = playerObj:hasTrait(CharacterTrait.DISORGANIZED)
     local containers = ItemUtil.getAllEquippedContainers(playerObj)
-    local mainInv = playerObj:getInventory()
 
     local gridCache = {}
 
     for _, item in ipairs(items) do
         local hotbar = getPlayerHotbar(playerNum)
         local inHotbar = hotbar and hotbar:isInHotbar(item)
-        if not item:isEquipped() and not inHotbar then
+        if not item:isEquipped() and not inHotbar and not isInsideKeyRing(item) then
             local addedToContainer = false
 
             local currentContainer = item:getContainer()
@@ -42,21 +46,6 @@ function GridAutoDropSystem._processItems(playerNum, items)
                         end
                     end
 
-                    if TetrisItemCategory.getCategory(item) == TetrisItemCategory.KEY then
-                        local keyRings = mainInv:getAllTagRecurse(ItemTag.KEY_RING, ArrayList.new())
-                        for i = 0, keyRings:size()-1 do
-                            local keyRing = keyRings:get(i)
-                            local container = keyRing:getItemContainer()
-                            local containerGrid = ItemContainerGrid.GetOrCreate(container, playerNum)
-                            if containerGrid:canAddItem(item) then
-                                local transfer = ISInventoryTransferAction:new(playerObj, item, currentContainer, container, 1)
-                                transfer.enforceTetrisRules = true
-                                ISTimedActionQueue.add(transfer)
-                                addedToContainer = true
-                                break
-                            end
-                        end
-                    end
                 end
 
                 if not addedToContainer then

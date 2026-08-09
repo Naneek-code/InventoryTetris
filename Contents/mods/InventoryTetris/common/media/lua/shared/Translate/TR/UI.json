@@ -6,5 +6,22 @@
     "UI_optionscreen_binding_tetris_close_window": "Açılır Pencereyi Kapat",
     "UI_tetris_options_grid_scale": "Karelaj Ölçüsü",
     "UI_tetris_options_container_info_scale": "Konteynır Bilgi Ölçüsü",
-    "UI_optionscreen_binding_InventoryTetris": "Tetris Envanter"
+    "UI_optionscreen_binding_InventoryTetris": "Tetris Envanter",
+    "UI_optionscreen_binding_EquipmentUI": "Ekipman Aray�z",
+    "UI_optionscreen_binding_equipment_toggle_window": "Ekipman Penceresini A�",
+    "UI_equipment_options_scale": "Ekipman Aray�z �l�e�i",
+    "UI_equipment_options_hide_equipped_items": "Ku�an�lm�� Ekipmanlar� Gizle",
+    "UI_equipment_equipment": "Ekipman",
+    "UI_equipment_hotbar": "E�ya Bar�",
+    "UI_equipment_head": "Kafa",
+    "UI_equipment_face": "Y�z",
+    "UI_equipment_torso": "G���s",
+    "UI_equipment_vest": "Yelek",
+    "UI_equipment_back": "S�rt",
+    "UI_equipment_waist": "Bel",
+    "UI_equipment_left_hand": "Sol El",
+    "UI_equipment_right_hand": "Sa� El",
+    "UI_equipment_jewelry": "Tak�",
+    "UI_equipment_legs": "Bacak",
+    "UI_equipment_feet": "Ayak"
 }

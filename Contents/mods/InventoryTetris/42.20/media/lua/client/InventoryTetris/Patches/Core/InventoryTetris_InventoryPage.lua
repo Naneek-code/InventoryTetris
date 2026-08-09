@@ -158,6 +158,16 @@ Events.OnGameBoot.Add(function()
 		end
 	end
 
+	-- Smangsty: Close key-ring popups when the overall inventory or loot pane collapses.
+	local og_collapseNow = ISInventoryPage.collapseNow
+	function ISInventoryPage:collapseNow()
+		local wasCollapsed = self.isCollapsed
+		og_collapseNow(self)
+		if not wasCollapsed and self.isCollapsed and self.inventoryPane.tetrisWindowManager then
+			self.inventoryPane.tetrisWindowManager:closeKeyRingPopups()
+		end
+	end
+
 	local og_bringToTop = ISInventoryPage.bringToTop
 	function ISInventoryPage:bringToTop()
 		og_bringToTop(self)

@@ -12,6 +12,8 @@
     "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier_tooltip": "Multiplicador de quão rápido os itens são transferidos. (Apenas Singleplayer. Desativado no MP por limites do servidor).",
     "Sandbox_InventoryTetris_BonusGridSize": "Bônus Global de Tamanho de Grade",
     "Sandbox_InventoryTetris_BonusGridSize_tooltip": "Adiciona largura e altura extras de grade a TODOS os contêineres.",
+    "Sandbox_InventoryTetris_StackSizeMultiplier": "Multiplicador Global de Tamanho de Pilha",
+    "Sandbox_InventoryTetris_StackSizeMultiplier_tooltip": "Multiplica globalmente os limites de pilha do Inventory Tetris. Insira um valor de 0,01 a 100,0. O padrão é 1,0. Itens que não empilham continuam não empilháveis.",
     "Sandbox_InventoryTetris_ItemWeightMultiplier": "Multiplicador de Peso dos Itens",
     "Sandbox_InventoryTetris_ItemWeightMultiplier_tooltip": "Escala o peso real dos itens no Java (ex: 0.10 = 10 por cento do peso). Mantenha em 1.0 para desativar. O formato dos blocos no Tetris permanece fixo no tamanho original."
 }

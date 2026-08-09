@@ -1,4 +1,6 @@
 local ItemGridWindow = require("InventoryTetris/UI/Windows/ItemGridWindow")
+local KeyRingWindow = require("InventoryTetris/UI/Windows/KeyRingWindow")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 
 ---@class TetrisWindowManager
 ---@field inventoryPane ISInventoryPane
@@ -101,6 +103,7 @@ function TetrisWindowManager:setupChildWindow(window)
     self:addBringToFrontOnMouseDown(window)
     self:addRemoveOnClose(window)
 
+    -- Smangsty: Semantic popups such as key rings do not own a Tetris grid UI.
     if window.gridContainerUi then
         for _, gridUi in ipairs(window.gridContainerUi.gridUis) do
             self:addBringToFrontOnMouseDown(gridUi)
@@ -154,12 +157,25 @@ function TetrisWindowManager:removeChildWindow(window)
     if parent then
         removeFromList(parent.childWindows, window)
 
-        for _, child in ipairs(window.childWindows) do
-            child.parentWindow = parent
-            table.insert(parent.childWindows, child)
+        for i = #window.childWindows, 1, -1 do
+            local child = window.childWindows[i]
+            -- Smangsty: Close semantic key-ring children with their owning Tetris popup.
+            if child.closeWithParent then
+                child:removeFromUIManager()
+                if child == self.openWindows[self.controllerWindowIndex] then
+                    self:previousWindow()
+                end
+                removeFromList(self.openWindows, child)
+                self:closeChildWindowsRecursive(child)
+                child.parentWindow = nil
+            else
+                child.parentWindow = parent
+                table.insert(parent.childWindows, child)
+            end
         end
     end
 
+    window.childWindows = {}
     window.parentWindow = nil
 end
 
@@ -172,9 +188,59 @@ function TetrisWindowManager:keepChildWindowsOnTop()
     end
 end
 
+-- Smangsty: Close key-ring popups when the overall inventory or loot pane collapses.
+function TetrisWindowManager:closeKeyRingPopups()
+    for i = #self.openWindows, 1, -1 do
+        local window = self.openWindows[i]
+        if window.isKeyRingPopup then
+            window:close()
+        end
+    end
+end
+
+function TetrisWindowManager:openKeyRingPopup(item, x, y)
+    if not KeyRingSupport.isItem(item) then return end
+
+    local inventory = item:getInventory()
+    local existing = inventory and self:findWindowByInventory(inventory) or nil
+    if existing then
+        existing:bringToTop()
+        return existing
+    end
+
+    x = x or getMouseX()
+    y = y or getMouseY()
+
+    local window = KeyRingWindow:new(x, y, item, self.playerNum)
+    if not window then return end
+
+    local screenWidth = getCore():getScreenWidth()
+    local screenHeight = getCore():getScreenHeight()
+    window:setX(math.max(0, math.min(x, screenWidth - window:getWidth())))
+    window:setY(math.max(0, math.min(y, screenHeight - window:getHeight())))
+
+    window:initialise()
+    window:addToUIManager()
+    window:bringToTop()
+    window.parentInventory = item:getContainer()
+    window.item = item
+    self:setupChildWindow(window)
+
+    local parent = self:findWindowByInventory(item:getContainer()) or self
+    window.parentWindow = parent
+    table.insert(parent.childWindows, window)
+    table.insert(self.openWindows, window)
+
+    return window
+end
+
 ---@param item InventoryItem
 function TetrisWindowManager:openContainerPopup(item)
     if not item or not item:IsInventoryContainer() then return end
+    -- Smangsty: Key rings use vanilla semantic transfers, including when opened from loot in MP.
+    if KeyRingSupport.isItem(item) then
+        return self:openKeyRingPopup(item)
+    end
     ---@cast item InventoryContainer
 
     if isClient() then -- Prevent multiplayer dupe glitch

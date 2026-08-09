@@ -6,5 +6,22 @@
     "UI_optionscreen_binding_tetris_close_window": "Zavřít inventář",
     "UI_tetris_options_grid_scale": "Měřítko mřížky",
     "UI_tetris_options_container_info_scale": "Měřítko informací o úložišti",
-    "UI_optionscreen_binding_InventoryTetris": "Inventářní Tetris"
+    "UI_optionscreen_binding_InventoryTetris": "Inventářní Tetris",
+    "UI_optionscreen_binding_EquipmentUI": "Rozhran� vybaven�",
+    "UI_optionscreen_binding_equipment_toggle_window": "Otev��t okno s vybaven�m",
+    "UI_equipment_options_scale": "M���tko rozhran� vybaven�",
+    "UI_equipment_options_hide_equipped_items": "Schovat vybaven� p�edm�ty",
+    "UI_equipment_equipment": "Vybaven�",
+    "UI_equipment_hotbar": "Li�ta",
+    "UI_equipment_head": "Hlava",
+    "UI_equipment_face": "Obli�ej",
+    "UI_equipment_torso": "Trup",
+    "UI_equipment_vest": "Vesta",
+    "UI_equipment_back": "Z�da",
+    "UI_equipment_waist": "P�s",
+    "UI_equipment_left_hand": "Lev� ruka",
+    "UI_equipment_right_hand": "Prav� ruka",
+    "UI_equipment_jewelry": "�perky",
+    "UI_equipment_legs": "Nohy",
+    "UI_equipment_feet": "Chodidla"
 }

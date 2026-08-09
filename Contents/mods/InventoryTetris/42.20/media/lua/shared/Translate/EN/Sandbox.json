@@ -12,6 +12,8 @@
     "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier_tooltip": "Multiplier for how fast items transfer between containers. (Singleplayer Only. Disabled in MP due to server limits).",
     "Sandbox_InventoryTetris_BonusGridSize": "Global Bonus Grid Size",
     "Sandbox_InventoryTetris_BonusGridSize_tooltip": "Adds extra grid width and height to ALL inventory containers globally.",
+    "Sandbox_InventoryTetris_StackSizeMultiplier": "Global Stack Size Multiplier",
+    "Sandbox_InventoryTetris_StackSizeMultiplier_tooltip": "Multiplies Inventory Tetris stack limits globally. Enter a value from 0.01 to 100.0. Default is 1.0. Items that do not stack remain non-stackable.",
     "Sandbox_InventoryTetris_ItemWeightMultiplier": "Item Weight Multiplier",
     "Sandbox_InventoryTetris_ItemWeightMultiplier_tooltip": "Scales actual Java item weights (e.g. 0.10 = 10 percent weight). Set to 1.0 to disable. Grid footprints remain fixed at original script sizes."
 }

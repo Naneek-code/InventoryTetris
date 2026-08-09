@@ -434,6 +434,22 @@ local function roundStackability(stackability)
     return math.max(1, math.floor(stackability + 0.5))
 end
 
+-- Smangsty: Apply the free-entry sandbox multiplier only to items that already stack.
+local function applyStackSizeMultiplier(maxStack)
+    if maxStack <= 1 then
+        return 1
+    end
+
+    local multiplier = SandboxVars
+        and SandboxVars.InventoryTetris
+        and tonumber(SandboxVars.InventoryTetris.StackSizeMultiplier)
+        or 1.0
+    if multiplier ~= multiplier or multiplier == math.huge or multiplier == -math.huge or multiplier <= 0 then
+        multiplier = 1.0
+    end
+    return roundStackability(maxStack * multiplier)
+end
+
 ---@param item InventoryItem
 function TetrisItemCalculator._simpleWeightStackability(item)
     local weight = item:getScriptItem():getActualWeight() -- Avoid wetness effecting weight
@@ -453,7 +469,7 @@ function TetrisItemCalculator._calculateItemStackability(item, itemClass)
         maxStack = calculation
     end
 
-    return maxStack
+    return applyStackSizeMultiplier(maxStack)
 end
 
 function TetrisItemCalculator._calculateAmmoStackability(item)

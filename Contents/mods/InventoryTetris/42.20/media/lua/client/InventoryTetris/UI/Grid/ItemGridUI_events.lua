@@ -5,6 +5,7 @@ local TetrisValidation = require("InventoryTetris/Data/TetrisValidation")
 local TetrisEvents = require("InventoryTetris/Events")
 local ItemStack = require("InventoryTetris/Model/ItemStack")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 local ItemUtil = require("Notloc/ItemUtil")
 local SearchGridAction = require("InventoryTetris/TimedActions/SearchGridAction")
 local GenericSingleItemRecipeHandler = require("InventoryTetris/EventHandlers/GenericSingleItemRecipeHandler")
@@ -13,6 +14,7 @@ local DragAndDrop = require("InventoryTetris/System/DragAndDrop")
 local ControllerDragAndDrop = require("InventoryTetris/System/ControllerDragAndDrop")
 local ControllerNode = require("InventoryTetris/UI/ControllerNode")
 local ItemGridStackSplitWindow = require("InventoryTetris/UI/Grid/ItemGridStackSplitWindow")
+local KeyRingMenu = require("InventoryTetris/UI/KeyRingMenu")
 
 local CONTROLLER_DOUBLE_PRESS_TIME = 200
 
@@ -97,9 +99,16 @@ function ItemGridUI:onMouseUp(x, y, gridStack)
         return true
     end
 
+    local draggedItem = DragAndDrop.getDraggedItem()
+    -- Smangsty: Clear stale vanilla focus only for drags originating in the key-ring pane.
+    local draggedFromKeyRing = draggedItem and KeyRingSupport.isContainer(draggedItem:getContainer())
+
     self:handleDragAndDrop(x, y)
     self:clearSelectedStacks()
     DragAndDrop.endDrag()
+    if draggedFromKeyRing then
+        ISMouseDrag.draggingFocus = nil
+    end
 
 	return true;
 end
@@ -290,8 +299,14 @@ function ItemGridUI:handleDragAndDrop_generic(vanillaStack, gridX, gridY, hovere
     local dragInventory = dragItem:getContainer()
     if not dragInventory then return end -- Not sure how this would happen, but it's been reported once or twice
 
-    local dragContainerGrid = ItemContainerGrid.GetOrCreate(dragInventory, self.playerNum)
-    local gridStack, otherGrid = dragContainerGrid:findGridStackByVanillaStack(vanillaStack)
+    local dragContainerGrid = nil
+    local gridStack = nil
+    local otherGrid = nil
+    -- Smangsty: Key-ring sources are semantic and never get a Tetris source grid.
+    if not KeyRingSupport.isContainer(dragInventory) then
+        dragContainerGrid = ItemContainerGrid.GetOrCreate(dragInventory, self.playerNum)
+        gridStack, otherGrid = dragContainerGrid:findGridStackByVanillaStack(vanillaStack)
+    end
 
     local isSameInventory = self.grid.inventory == dragInventory
     local isSameGrid = self.grid == otherGrid
@@ -373,12 +388,25 @@ function ItemGridUI:handleDropOnContainer(vanillaStack, container)
     end
 
     local frontItem = vanillaStack.items[1]
+    local playerObj = getSpecificPlayer(self.playerNum)
+
+    if KeyRingSupport.isContainer(container) then
+        -- Smangsty: Key-ring destinations use vanilla acceptance and transfer rules.
+        if not container:isItemAllowed(frontItem) then return end
+
+        for i=2, #vanillaStack.items do
+            local item = vanillaStack.items[i]
+            self:unequipIfNeeded(playerObj, item)
+            ISTimedActionQueue.add(ISInventoryTransferAction:new(playerObj, item, item:getContainer(), container))
+        end
+        return
+    end
+
     local containerDef = TetrisContainerData.getContainerDefinition(container)
     if not TetrisValidation.validateInsert(container, containerDef, frontItem) then
         return
     end
 
-    local playerObj = getSpecificPlayer(self.playerNum)
     for i=2, #vanillaStack.items do
         local item = vanillaStack.items[i]
 
@@ -623,6 +651,11 @@ end
 function ItemGridUI:interact(gridStack)
     local item = ItemStack.getFrontItem(gridStack, self.grid.inventory)
     if not item then return end
+
+    if KeyRingMenu.isKeyRing(item) then
+        KeyRingMenu.open(item, self.playerNum, self, gridStack)
+        return
+    end
 
     if item:IsInventoryContainer() then
         self.inventoryPane.tetrisWindowManager:openContainerPopup(item)
