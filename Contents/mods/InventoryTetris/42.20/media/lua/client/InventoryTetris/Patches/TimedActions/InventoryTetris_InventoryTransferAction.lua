@@ -1,6 +1,7 @@
 local TetrisItemData = require("InventoryTetris/Data/TetrisItemData")
 local TetrisContainerData = require("InventoryTetris/Data/TetrisContainerData")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 local TetrisModCompatibility = require("InventoryTetris/TetrisModCompatibility")
 
 -- Adjustments to the InventoryTransferAction to support the new rules for item transfers under the grid system and avoid illegal item placements.
@@ -43,10 +44,11 @@ Events.OnGameBoot.Add(function()
             local srcRoot = getOutermostContainer(srcContainer)
             local destRoot = getOutermostContainer(destContainer)
 
-            local destDef = TetrisContainerData.getContainerDefinition(destContainer)
+            -- Smangsty: Key-ring destinations never need a spatial Tetris definition.
+            local destDef = KeyRingSupport.isContainer(destContainer) and nil or TetrisContainerData.getContainerDefinition(destContainer)
 
             local isInInventory = inv == srcRoot and inv == destRoot
-            local isDroppingToFloor = inv == srcRoot and destDef.trueType == "floor"
+            local isDroppingToFloor = inv == srcRoot and destDef and destDef.trueType == "floor"
             o.stopOnWalk = not (isInInventory or isDroppingToFloor)
 
             o.isDroppingToFloor = isDroppingToFloor
@@ -104,12 +106,14 @@ Events.OnGameBoot.Add(function()
             return false
         end
 
-        local destDef = TetrisContainerData.getContainerDefinition(self.destContainer)
-        local destType = destDef.trueType
+        -- Smangsty: Key-ring destinations stay on vanilla validation and skip spatial grid checks.
+        local isKeyRingDestination = KeyRingSupport.isContainer(self.destContainer)
+        local destDef = isKeyRingDestination and nil or TetrisContainerData.getContainerDefinition(self.destContainer)
+        local destType = destDef and destDef.trueType or nil
 
         -- If the target is not the player's inventory, we need to ensure the item fits somewhere
         local isPlayerInv = self.character:getInventory() == self.destContainer
-        if not isPlayerInv then
+        if not isPlayerInv and not isKeyRingDestination then
             local containerUi = ItemContainerGrid.GetOrCreate(self.destContainer, self.character:getPlayerNum())
             if not containerUi:canAddItem(self.item) then
                 return false
@@ -133,7 +137,7 @@ Events.OnGameBoot.Add(function()
             {self.destContainer, self.srcContainer}
         );
 
-        if not valid or not self.enforceTetrisRules then
+        if not valid or not self.enforceTetrisRules or isKeyRingDestination then
             return valid
         end
         return self:validateTetrisRules()
@@ -240,6 +244,11 @@ Events.OnGameBoot.Add(function()
             local oldContainerGrid = ItemContainerGrid.FindInstance(self.srcContainer, self.character:getPlayerNum())
             if oldContainerGrid then
                 oldContainerGrid:removeItem(item)
+            end
+
+            -- Smangsty: Key-ring contents remain vanilla semantic items without Tetris positions.
+            if KeyRingSupport.isContainer(self.destContainer) then
+                return
             end
 
             local destContainerGrid = self.destContainer and ItemContainerGrid.GetOrCreate(self.destContainer, self.character:getPlayerNum()) or nil

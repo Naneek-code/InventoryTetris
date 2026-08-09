@@ -25,9 +25,85 @@ Events.OnGameBoot.Add(function()
         return o
     end
 
+    -- Smangsty: Keep the vanilla key-ring pane compact without changing item behavior.
+    local function applyHeaderlessVanillaPane(self)
+        if not self.tetrisHideHeaders then return end
+        if self.expandAll then self.expandAll:setVisible(false) end
+        if self.collapseAll then self.collapseAll:setVisible(false) end
+        if self.filterMenu then self.filterMenu:setVisible(false) end
+        if self.nameHeader then self.nameHeader:setVisible(false) end
+        if self.typeHeader then self.typeHeader:setVisible(false) end
+        self.headerHgt = 0
+        self.column3 = self.width + 1
+    end
+
+    -- Smangsty: Split visually identical keys by vanilla key ID without changing item data.
+    local function splitKeyRingGroupsByKeyId(self)
+        if not self.tetrisSplitKeysById or not self.itemslist then return end
+
+        local splitItemsList = {}
+        local splitItemIndex = {}
+
+        for _, group in ipairs(self.itemslist) do
+            if instanceof(group, "InventoryItem") or not group.items then
+                table.insert(splitItemsList, group)
+            else
+                local groupsByKey = {}
+                local keyOrder = {}
+
+                -- Vanilla stores a dummy duplicate at index 1; real items begin at index 2.
+                for i = 2, #group.items do
+                    local item = group.items[i]
+                    local keyId = item:getKeyId()
+                    local identity = keyId == -1 and ("item:" .. tostring(item:getID())) or ("key:" .. tostring(keyId))
+                    local splitGroup = groupsByKey[identity]
+
+                    if not splitGroup then
+                        splitGroup = {
+                            items = {},
+                            count = 1,
+                            invPanel = self,
+                            name = (group.name or item:getDisplayName()) .. string.char(31) .. identity,
+                            cat = group.cat,
+                            weight = 0,
+                            equipped = group.equipped,
+                            inHotbar = group.inHotbar,
+                        }
+                        groupsByKey[identity] = splitGroup
+                        table.insert(keyOrder, identity)
+                    end
+
+                    table.insert(splitGroup.items, item)
+                    splitGroup.weight = splitGroup.weight + item:getUnequippedWeight()
+                end
+
+                for _, identity in ipairs(keyOrder) do
+                    local splitGroup = groupsByKey[identity]
+                    local firstItem = splitGroup.items[1]
+                    if firstItem then
+                        table.insert(splitGroup.items, 1, firstItem)
+                        splitGroup.count = #splitGroup.items
+                        if self.collapsed[splitGroup.name] == nil then
+                            self.collapsed[splitGroup.name] = true
+                        end
+                        table.insert(splitItemsList, splitGroup)
+                        splitItemIndex[splitGroup.name] = splitGroup
+                    end
+                end
+            end
+        end
+
+        self.itemslist = splitItemsList
+        self.itemindex = splitItemIndex
+        table.wipe(self.selected)
+    end
     local og_createChildren = ISInventoryPane.createChildren
     function ISInventoryPane:createChildren()
         og_createChildren(self)
+        if self.tetrisVanillaPane then
+            applyHeaderlessVanillaPane(self)
+            return
+        end
 
         self.tetrisWindowManager = TetrisWindowManager:new(self, self.player)
 
@@ -64,7 +140,9 @@ Events.OnGameBoot.Add(function()
 
         local windows = self:getChildWindows()
         for _, window in ipairs(windows) do
-            window:onApplyGridScale(scale)
+            if window.onApplyGridScale then
+                window:onApplyGridScale(scale)
+            end
         end
 
         self:refreshContainer()
@@ -77,7 +155,9 @@ Events.OnGameBoot.Add(function()
 
         local windows = self:getChildWindows()
         for _, window in ipairs(windows) do
-            window:onApplyContainerInfoScale(scale)
+            if window.onApplyContainerInfoScale then
+                window:onApplyContainerInfoScale(scale)
+            end
         end
 
         self:refreshContainer()
@@ -85,6 +165,13 @@ Events.OnGameBoot.Add(function()
 
     local og_refreshContainer = ISInventoryPane.refreshContainer
     function ISInventoryPane:refreshContainer()
+        if self.tetrisVanillaPane then
+            local result = og_refreshContainer(self)
+            splitKeyRingGroupsByKeyId(self)
+            applyHeaderlessVanillaPane(self)
+            return result
+        end
+
         -- Do this for mod compatibility only, tetris has no use for this
         og_refreshContainer(self)
         -- Hide these buttons because they are updated every refresh
@@ -196,7 +283,7 @@ Events.OnGameBoot.Add(function()
         end
 
         for _, window in ipairs(self:getChildWindows()) do
-            if window:isMouseOver() then
+            if window:isMouseOver() and window.gridContainerUi then
                 return window.gridContainerUi
             end
         end
@@ -204,8 +291,21 @@ Events.OnGameBoot.Add(function()
         return nil
     end
 
+    local og_renderdetails = ISInventoryPane.renderdetails
+    function ISInventoryPane:renderdetails(doDragged)
+        -- Smangsty: Suppress vanilla's dragged-row ghost; Inventory Tetris renders the drag icon.
+        if self.tetrisVanillaPane and doDragged then
+            return
+        end
+        return og_renderdetails(self, doDragged)
+    end
+
     local og_prerender = ISInventoryPane.prerender
     function ISInventoryPane:prerender()
+        if self.tetrisVanillaPane then
+            return og_prerender(self)
+        end
+
         og_prerender(self);
 
         self.nameHeader:setVisible(false)
@@ -233,6 +333,10 @@ Events.OnGameBoot.Add(function()
 
     local og_render = ISInventoryPane.render
     function ISInventoryPane:render()
+        if self.tetrisVanillaPane then
+            return og_render(self)
+        end
+
         og_render(self)
         if self.mode ~= "grid" then
             self.mode = "grid" -- Let a single frame pass before we start rendering the grid
@@ -241,7 +345,10 @@ Events.OnGameBoot.Add(function()
     end
 
     local og_doButtons = ISInventoryPane.doButtons
-    function ISInventoryPane:doButtons()
+    function ISInventoryPane:doButtons(...)
+        if self.tetrisVanillaPane then
+            return og_doButtons(self, ...)
+        end
     end
 
     local og_updateTooltip = ISInventoryPane.updateTooltip
@@ -339,15 +446,49 @@ Events.OnGameBoot.Add(function()
     local og_onMouseDown = ISInventoryPane.onMouseDown
     function ISInventoryPane:onMouseDown(x, y)
         if self.mode ~= "grid" then
-            return og_onMouseDown(self, x, y)
+            if self.tetrisVanillaPane then
+                -- Smangsty: Resolve the key row on mouse-down so first-drag works without marquee selection.
+                local row = math.floor((y - self.headerHgt) / self.itemHgt) + 1
+                if x >= 0 and y >= self.headerHgt and x < self.column3 and self.items[row] then
+                    self.mouseOverOption = row
+                else
+                    self.mouseOverOption = 0
+                end
+            end
+
+            local result = og_onMouseDown(self, x, y)
+            if self.tetrisVanillaPane and self.mouseOverOption == 0 then
+                self.draggingMarquis = false
+            end
+            return result
         end
         return true;
     end
 
     local og_mouseUp = ISInventoryPane.onMouseUp
+    local tetrisVanillaDragFocus = { onMouseUp = function() end }
     function ISInventoryPane:onMouseUp(x, y)
         if self.mode ~= "grid" then
-            return og_mouseUp(self, x, y)
+            local externalKeyRingDrag = self.tetrisVanillaPane and ISMouseDrag.dragging and ISMouseDrag.draggingFocus ~= self
+            local savedMouseOverOption = externalKeyRingDrag and self.mouseOverOption or nil
+            if externalKeyRingDrag then
+                -- Smangsty: External drops target the key-ring container, not the hovered key row.
+                self.mouseOverOption = 0
+            end
+
+            local bridgeTetrisDrag = self.tetrisVanillaPane and ISMouseDrag.dragging and not ISMouseDrag.draggingFocus and ISMouseDrag.dragOwner
+            if bridgeTetrisDrag then
+                ISMouseDrag.draggingFocus = tetrisVanillaDragFocus
+            end
+
+            local result = og_mouseUp(self, x, y)
+            if externalKeyRingDrag then
+                self.mouseOverOption = savedMouseOverOption or 0
+            end
+            if bridgeTetrisDrag then
+                DragAndDrop.endDrag()
+            end
+            return result
         end
         return true;
     end
@@ -376,6 +517,10 @@ Events.OnGameBoot.Add(function()
 
     local og_onMouseWheel = ISInventoryPane.onMouseWheel
     function ISInventoryPane:onMouseWheel(del)
+        if self.tetrisVanillaPane then
+            return og_onMouseWheel(self, del)
+        end
+
         if self.inventoryPage.isCollapsed then return false; end
         if self.inventoryPage:isCycleContainerKeyDown() then return false; end
 
@@ -399,6 +544,11 @@ Events.OnGameBoot.Add(function()
 
     local og_transferItemsByWeight = ISInventoryPane.transferItemsByWeight
     function ISInventoryPane:transferItemsByWeight(items, container)
+        if self.tetrisVanillaPane then
+            -- Smangsty: Key-ring transfers stay on vanilla acceptance and transfer rules.
+            return og_transferItemsByWeight(self, items, container)
+        end
+
         ISInventoryTransferAction.globalTetrisRules = true
         og_transferItemsByWeight(self, items, container)
         ISInventoryTransferAction.globalTetrisRules = false

@@ -1,6 +1,7 @@
 local TetrisContainerData = require("InventoryTetris/Data/TetrisContainerData")
 local TetrisItemData = require("InventoryTetris/Data/TetrisItemData")
 local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 
 local TetrisValidation = {}
 
@@ -76,10 +77,8 @@ end
 
 ---@param container ItemContainer
 function TetrisValidation.isTardis(container)
-    local containingItem = container:getContainingItem()
-    local isKeyRing = containingItem and containingItem:hasTag(ItemTag.KEY_RING)
-
-    if isKeyRing or container:getType() == "none" then
+    -- Smangsty: Key rings are semantic containers, never TARDIS candidates.
+    if KeyRingSupport.isContainer(container) or container:getType() == "none" then
         return false
     end
 

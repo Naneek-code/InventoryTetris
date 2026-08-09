@@ -93,7 +93,8 @@ local function searchInventoryPageForContainerGrid(invPage, targetInventory)
 
     if invPage.inventoryPane.tetrisWindowManager then
         local window = invPage.inventoryPane.tetrisWindowManager:findWindowByInventory(targetInventory)
-        if window then
+        -- Smangsty: Managed semantic popups may not expose gridContainerUi.
+        if window and window.gridContainerUi then
             return window.gridContainerUi.containerGrid
         end
     end

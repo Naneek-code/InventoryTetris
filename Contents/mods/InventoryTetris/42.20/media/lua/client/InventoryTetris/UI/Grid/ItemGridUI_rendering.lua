@@ -5,6 +5,7 @@ local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local TetrisEvents = require("InventoryTetris/Events")
 local ItemStack = require("InventoryTetris/Model/ItemStack")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local KeyRingSupport = require("InventoryTetris/KeyRingSupport")
 local GridTransferQueueData = require("InventoryTetris/Model/GridTransferQueueData")
 local DragAndDrop = require("InventoryTetris/System/DragAndDrop")
 local ControllerDragAndDrop = require("InventoryTetris/System/ControllerDragAndDrop")
@@ -124,6 +125,14 @@ local function determineContainerHoverColor(draggedStack, hoveredStack, dragInv,
     if draggedItem and containerItem and containerItem:IsInventoryContainer() then
         ---@cast containerItem InventoryContainer
         local container = containerItem:getInventory()
+        if KeyRingSupport.isContainer(container) then
+            -- Smangsty: Key-ring hover validation uses vanilla acceptance, not a temporary Tetris grid.
+            if container:isItemAllowed(draggedItem) then
+                return unpack(containerItemHoverColor)
+            end
+            return unpack(invalidItemHoverColor)
+        end
+
         local gridContainer = ItemContainerGrid.CreateTemp(container, playerNum)
         if gridContainer:canAddItem(draggedItem) then
             return unpack(containerItemHoverColor)

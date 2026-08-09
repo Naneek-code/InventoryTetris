@@ -6,5 +6,22 @@
     "UI_optionscreen_binding_tetris_close_window": "Cerrar ventana emergente",
     "UI_tetris_options_grid_scale": "Escala de Cuadricula",
     "UI_tetris_options_container_info_scale": "Escala de informacion de contenedor",
-    "UI_optionscreen_binding_InventoryTetris": "Inventario Tetris"
+    "UI_optionscreen_binding_InventoryTetris": "Inventario Tetris",
+    "UI_optionscreen_binding_EquipmentUI": "UI de equipamiento",
+    "UI_optionscreen_binding_equipment_toggle_window": "Abrir ventana de equipo",
+    "UI_equipment_options_scale": "Escala de IU de equipamiento",
+    "UI_equipment_options_hide_equipped_items": "Ocultar objetos equipados",
+    "UI_equipment_equipment": "Equipamiento",
+    "UI_equipment_hotbar": "Barra de acceso r�pido",
+    "UI_equipment_head": "Cabeza",
+    "UI_equipment_face": "Rostro",
+    "UI_equipment_torso": "Torso",
+    "UI_equipment_vest": "Chaleco",
+    "UI_equipment_back": "Espalda",
+    "UI_equipment_waist": "Cintura",
+    "UI_equipment_left_hand": "Mano izquierda",
+    "UI_equipment_right_hand": "Mano derecha",
+    "UI_equipment_jewelry": "Joyas",
+    "UI_equipment_legs": "Piernas",
+    "UI_equipment_feet": "Pies"
 }

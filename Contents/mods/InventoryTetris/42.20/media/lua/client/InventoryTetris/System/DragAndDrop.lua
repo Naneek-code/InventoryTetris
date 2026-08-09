@@ -81,7 +81,9 @@ local function cleanDraggedStacks()
 
     -- Clean multiple stacks
     for i = #ISMouseDrag.dragging, 1, -1 do
-        if #ISMouseDrag.dragging[i].items == 0 then
+        local dragged = ISMouseDrag.dragging[i]
+        -- Smangsty: Vanilla key-ring drags may contain raw InventoryItem rows.
+        if dragged.items and #dragged.items == 0 then
             table.remove(ISMouseDrag.dragging, i)
         end
     end
@@ -91,7 +93,32 @@ local function cleanDraggedStacks()
     end
 end
 
+-- Smangsty: Normalize vanilla key-ring rows into unique Tetris drag stacks.
+local function getNormalizedKeyRingDraggedStacks()
+    local focus = ISMouseDrag.draggingFocus
+    if not focus or not focus.tetrisVanillaPane or not ISMouseDrag.dragging then
+        return nil
+    end
+
+    local actualItems = ISInventoryPane.getActualItems(ISMouseDrag.dragging)
+    local seenItems = {}
+    local normalizedStacks = {}
+
+    for _, item in ipairs(actualItems) do
+        if instanceof(item, "InventoryItem") and not seenItems[item] then
+            seenItems[item] = true
+            table.insert(normalizedStacks, DragAndDrop.convertItemToStack(item))
+        end
+    end
+
+    return normalizedStacks
+end
+
 function DragAndDrop.getDraggedStack()
+    local normalizedStacks = getNormalizedKeyRingDraggedStacks()
+    if normalizedStacks then
+        return normalizedStacks[1]
+    end
     if not ISMouseDrag.dragging then
         return nil
     end
@@ -105,6 +132,10 @@ function DragAndDrop.getDraggedStack()
 end
 
 function DragAndDrop.getDraggedStacks()
+    local normalizedStacks = getNormalizedKeyRingDraggedStacks()
+    if normalizedStacks then
+        return normalizedStacks
+    end
     cleanDraggedStacks()
     return ISMouseDrag.dragging
 end

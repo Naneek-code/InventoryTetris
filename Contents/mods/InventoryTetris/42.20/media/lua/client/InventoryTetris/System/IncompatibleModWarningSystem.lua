@@ -33,6 +33,15 @@ function InventoryTetrisIncompatibleModWarningSystem.showCompatibilityIssues()
 
     InventoryTetrisIncompatibleModWarningSystem.handleItemCategoryMods(incompatibilityPopup)
 
+    -- Smangsty: Warn if deprecated Equipment UI bypasses metadata incompatibility.
+    if isModActive("EQUIPMENT_UI") then
+        incompatibilityPopup:addModIncompatibility(
+            "Legacy Equipment UI",
+            "EQUIPMENT_UI",
+            "INCOMPATIBLE:\nEquipment UI is now bundled with Inventory Tetris.\nDisable the old EQUIPMENT_UI mod and use Equipment UI (Inventory Tetris)."
+        )
+    end
+
     -- Not really an incompatibility, but I'm very tired of people blaming Tetris for this one
     if isModActive("PLLootF") and not InventoryTetrisIncompatibleModWarningSystem.hasPawLowLootFantasyPatch() then
         incompatibilityPopup:addModIncompatibility("Paw Low Loot - Fantasy Pack", "PLLootF", "MAJOR BUG:\nCauses items dropped to the floor to be deleted.\nDo not use without a community patch, i.e. Yet Another Paw Low Patch ( PLLootF_Patch )")

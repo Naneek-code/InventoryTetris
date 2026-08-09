@@ -6,5 +6,22 @@
     "UI_optionscreen_binding_tetris_close_window": "Zamknij okno",
     "UI_tetris_options_grid_scale": "Skala siatki",
     "UI_tetris_options_container_info_scale": "Skala informacji o kontenerze",
-    "UI_optionscreen_binding_InventoryTetris": "Ekwipunek Tetris"
+    "UI_optionscreen_binding_InventoryTetris": "Ekwipunek Tetris",
+    "UI_optionscreen_binding_EquipmentUI": "Interfejs ekwipunku",
+    "UI_optionscreen_binding_equipment_toggle_window": "Otw�rz okno ekwpiunku",
+    "UI_equipment_options_scale": "Skalowanie interfejsu ekwipunku",
+    "UI_equipment_options_hide_equipped_items": "Schowaj wyposa�one przedmioty",
+    "UI_equipment_equipment": "Ekwipunek",
+    "UI_equipment_hotbar": "Pasek skr�t�w",
+    "UI_equipment_head": "G�owa",
+    "UI_equipment_face": "Twarz",
+    "UI_equipment_torso": "Tors",
+    "UI_equipment_vest": "Kamizelka",
+    "UI_equipment_back": "Plecy",
+    "UI_equipment_waist": "Talia",
+    "UI_equipment_left_hand": "Lewa R�ka",
+    "UI_equipment_right_hand": "Prawa R�ka",
+    "UI_equipment_jewelry": "Bi�uteria",
+    "UI_equipment_legs": "Nogi",
+    "UI_equipment_feet": "Stopy"
 }

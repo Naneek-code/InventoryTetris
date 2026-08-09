@@ -18,5 +18,22 @@
     "UI_tetris_options_do_interact": "ปฏิสัมพันธ์",
     "UI_tetris_options_do_move": "เคลื่อนย้าย",
     "UI_tetris_options_do_equip": "สวมใส่",
-    "UI_tetris_options_do_drop": "ทิ้ง"
+    "UI_tetris_options_do_drop": "ทิ้ง",
+    "UI_optionscreen_binding_EquipmentUI": "หน้าต่างอุปกรณ์สวมใส่",
+    "UI_optionscreen_binding_equipment_toggle_window": "เปิดหน้าต่างอุปกรณ์สวมใส่",
+    "UI_equipment_options_scale": "ขนาดหน้าต่างอุปกรณ์สวมใส่",
+    "UI_equipment_options_hide_equipped_items": "ซ่อนไอเท็มที่สวมใส่",
+    "UI_equipment_equipment": "อุปกรณ์สวมใส่",
+    "UI_equipment_hotbar": "แถบลัด",
+    "UI_equipment_head": "ศีรษะ",
+    "UI_equipment_face": "ใบหน้า",
+    "UI_equipment_torso": "ลำตัว",
+    "UI_equipment_vest": "เสื้อกั๊ก",
+    "UI_equipment_back": "หลัง",
+    "UI_equipment_waist": "เอว",
+    "UI_equipment_left_hand": "ข้อมือซ้าย",
+    "UI_equipment_right_hand": "ข้อมือขวา",
+    "UI_equipment_jewelry": "เครื่องประดับ",
+    "UI_equipment_legs": "ขา",
+    "UI_equipment_feet": "เท้า"
 }
