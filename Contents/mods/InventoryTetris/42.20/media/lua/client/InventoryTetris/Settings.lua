@@ -42,6 +42,8 @@ local optionDefinitions = {
     EasyOptionsBuilder.defineDropdown("CTRL_CLICK_ACTION", "move", clickDropdownOptions, "UI_tetris_options_ctrl_click_action"),
     EasyOptionsBuilder.defineDropdown("ALT_CLICK_ACTION", "equip", clickDropdownOptions, "UI_tetris_options_alt_click_action"),
     EasyOptionsBuilder.defineDropdown("SHIFT_CLICK_ACTION", "multi", clickDropdownOptions, "UI_tetris_options_shift_click_action"),
+    -- Smangsty: Keep Key Ring popups independent by default; players can opt back into inventory-collapse auto-close.
+    EasyOptionsBuilder.defineCheckbox("CLOSE_KEYRING_WITH_INVENTORY", false, "UI_tetris_options_close_keyring_with_inventory", "UI_tetris_options_close_keyring_with_inventory_desc"),
 
     EasyOptionsBuilder.defineTitle("UI_tetris_performance_options"),
     EasyOptionsBuilder.defineCheckbox("DO_STACK_SHADOWS", true, "UI_tetris_options_do_stack_shadows", "UI_tetris_options_do_stack_shadows_desc"),
@@ -57,6 +59,7 @@ local optionDefinitions = {
 ---@field CTRL_CLICK_ACTION string
 ---@field ALT_CLICK_ACTION string
 ---@field SHIFT_CLICK_ACTION string
+---@field CLOSE_KEYRING_WITH_INVENTORY boolean
 ---@field DO_STACK_SHADOWS boolean
 local INVENTORY_TETRIS_OPTIONS = EasyOptionsBuilder.build(optionDefinitions, "INVENTORY_TETRIS", "UI_optionscreen_binding_InventoryTetris")
 
