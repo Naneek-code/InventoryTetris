@@ -1,6 +1,7 @@
 local DragAndDrop = require("InventoryTetris/System/DragAndDrop")
 local DragItemRenderer = require("InventoryTetris/UI/TetrisDragItemRenderer")
 local ControllerNode = require("InventoryTetris/UI/ControllerNode")
+local OPT = require("InventoryTetris/Settings")
 
 -- Injects the new control scheme into the InventoryPage class.
 ---@diagnostic disable: duplicate-set-field
@@ -158,12 +159,12 @@ Events.OnGameBoot.Add(function()
 		end
 	end
 
-	-- Smangsty: Close key-ring popups when the overall inventory or loot pane collapses.
+	-- Smangsty: Key Ring popups stay independent by default; auto-close is now an opt-in client preference.
 	local og_collapseNow = ISInventoryPage.collapseNow
 	function ISInventoryPage:collapseNow()
 		local wasCollapsed = self.isCollapsed
 		og_collapseNow(self)
-		if not wasCollapsed and self.isCollapsed and self.inventoryPane.tetrisWindowManager then
+		if OPT.CLOSE_KEYRING_WITH_INVENTORY and not wasCollapsed and self.isCollapsed and self.inventoryPane.tetrisWindowManager then
 			self.inventoryPane.tetrisWindowManager:closeKeyRingPopups()
 		end
 	end

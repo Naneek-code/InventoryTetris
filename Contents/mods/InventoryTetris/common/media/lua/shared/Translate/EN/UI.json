@@ -6,6 +6,8 @@
     "UI_optionscreen_binding_tetris_close_window": "Close Popup Window",
     "UI_tetris_buttons_search": "Search",
     "UI_tetris_keyring_open": "Open Key Ring",
+    "UI_tetris_options_close_keyring_with_inventory": "Close Key Ring With Inventory",
+    "UI_tetris_options_close_keyring_with_inventory_desc": "Automatically close open Key Ring windows when the main inventory or loot panel collapses.",
     "UI_optionscreen_binding_InventoryTetris": "Inventory Tetris",
     "UI_tetris_scale_options": "Scaling",
     "UI_tetris_options_grid_scale": "Grid Scale",
