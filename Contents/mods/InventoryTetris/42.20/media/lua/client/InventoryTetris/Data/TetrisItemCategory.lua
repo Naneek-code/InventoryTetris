@@ -77,6 +77,10 @@ function TetrisItemCategory._getCategoryInternal(item, type)
     elseif item:IsClothing() then
         return TetrisItemCategory.CLOTHING
 
+    -- Smangsty: Classify B42 seed items before food; several seeds are implemented as Food but still belong in seed storage.
+    elseif string.find(type, "Seed") and not string.find(type, "Paste") then
+        return TetrisItemCategory.SEED
+
     elseif item:IsFood() or displayCategory == "WaterContainer" or displayCategory == "Water" then -- TODO: Check the fluidContainer instead for water?
         return TetrisItemCategory.FOOD
 
@@ -89,8 +93,6 @@ function TetrisItemCategory._getCategoryInternal(item, type)
     elseif category == "Key" then
         return TetrisItemCategory.KEY
 
-    elseif string.find(type, "Seed") and not string.find(type, "Paste") then
-        return TetrisItemCategory.SEED
     end
 
     return TetrisItemCategory.MISC

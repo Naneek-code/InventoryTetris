@@ -62,6 +62,17 @@ local itemPack = {
 		["height"] = 2,
 		["maxStackSize"] = 1,
 	},
+	-- Smangsty: Hydration packs are backpacks first; do not size their outer footprint from the integrated water bladder.
+	["Base.Bag_HydrationBackpack"] = {
+		["maxStackSize"] = 1,
+		["height"] = 4,
+		["width"] = 3,
+	},
+	["Base.Bag_HydrationBackpack_Camo"] = {
+		["maxStackSize"] = 1,
+		["height"] = 4,
+		["width"] = 3,
+	},
 	["Base.FirstAidKit_Military"] = {
 		["maxStackSize"] = 1,
 		["height"] = 1,
@@ -3085,6 +3096,7 @@ local containerPack = {
 		},
 		["isFragile"] = true,
 	},
+	-- Smangsty: Vanilla B42 drawstring pouches do not impose item-category filters; keep seed, dice, and gem bags content-compatible.
 	["SeedBag_Farming_1"] = {
 		["gridDefinitions"] = {
 			[1] = {
@@ -3097,9 +3109,6 @@ local containerPack = {
 					["y"] = 0,
 				},
 			},
-		},
-		["validCategories"] = {
-			["SEED"] = true,
 		},
 		["isRigid"] = true,
 	},
@@ -3116,9 +3125,6 @@ local containerPack = {
 				},
 			},
 		},
-		["validCategories"] = {
-			["SEED"] = true,
-		},
 		["isRigid"] = true,
 	},
 	["DiceBag_1"] = {
@@ -3133,9 +3139,6 @@ local containerPack = {
 					["y"] = 0,
 				},
 			},
-		},
-		["validCategories"] = {
-			["MISC"] = true,
 		},
 		["isFragile"] = true,
 		["isRigid"] = true,
@@ -3152,9 +3155,6 @@ local containerPack = {
 					["y"] = 0,
 				},
 			},
-		},
-		["validCategories"] = {
-			["MISC"] = true,
 		},
 		["isFragile"] = true,
 		["isRigid"] = true,

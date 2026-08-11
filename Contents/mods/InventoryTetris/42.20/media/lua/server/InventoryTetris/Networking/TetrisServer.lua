@@ -34,9 +34,13 @@ local function findItemByID(container, id)
     local items = container:getItems()
     for i = 0, items:size() - 1 do
         local child = items:get(i)
-        if child:getInventory() then
-            local found = findItemByID(child:getInventory(), id)
-            if found then return found end
+        -- Smangsty: B42 inventory items do not universally expose getInventory(); recurse only through real container items.
+        if child and child:IsInventoryContainer() then
+            local childContainer = child:getItemContainer()
+            if childContainer then
+                local found = findItemByID(childContainer, id)
+                if found then return found end
+            end
         end
     end
     return nil

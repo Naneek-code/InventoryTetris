@@ -52,7 +52,18 @@ function TetrisValidation.validateInsert(container, containerDef, item)
     end
 
     local itemCategory = TetrisItemCategory.getCategory(item)
-    return TetrisContainerData.canAcceptCategory(containerDef, itemCategory)
+    if TetrisContainerData.canAcceptCategory(containerDef, itemCategory) then
+        return true
+    end
+
+    -- Smangsty: B42 treats suturing thread/floss as Material; medical-only containers should still accept vanilla suture thread.
+    if TetrisContainerData.getSingleValidCategory(containerDef) == TetrisItemCategory.HEALING then
+        if item:getType() == "Thread" or item:hasTag(ItemTag.THREAD) then
+            return true
+        end
+    end
+
+    return false
 end
 
 ---@param container ItemContainer

@@ -3,7 +3,8 @@ Events.OnGameStart.Add(function ()
 
     function ISMoveablesAction:new(character, square, mode, origSpriteName, object, direction, item, moveCursor)
         if moveCursor then
-            ISMoveableCursor.tetris_jitTransferItems(character, moveCursor.currentMoveProps, origSpriteName)
+            -- Smangsty: Pass the action mode explicitly so placement-only JIT transfer does not rely on cursor-global state.
+            ISMoveableCursor.tetris_jitTransferItems(character, moveCursor.currentMoveProps, origSpriteName, mode)
         end
         return og_new(self, character, square, mode, origSpriteName, object, direction, item, moveCursor)
     end

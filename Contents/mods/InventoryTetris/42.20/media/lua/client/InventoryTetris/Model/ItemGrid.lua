@@ -704,6 +704,11 @@ local SOME_BODY_SEARCH = 2
 local ENABLE_BODY_SEARCH = 3
 
 function ItemGrid:isUnsearched(playerNum)
+    -- Smangsty: Dev editor previews are synthetic tooling grids, never searchable gameplay containers.
+    if self.containerDefinition._devPreview then
+        return false
+    end
+
     if not SandboxVars.InventoryTetris.EnableSearch then
         return false
     end

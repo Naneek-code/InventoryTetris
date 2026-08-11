@@ -2,6 +2,7 @@ local TetrisItemData = require("InventoryTetris/Data/TetrisItemData")
 local TetrisContainerData = require("InventoryTetris/Data/TetrisContainerData")
 
 -- Pack #1
+-- Smangsty: Treat a 1x1 cell as roughly one normal jeans-pocket of volume; favor believable packing without sacrificing fun.
 local itemPack = {
 	["Base.CeramicCrucibleSmall"] = {
 		["maxStackSize"] = 1,
@@ -28,120 +29,126 @@ local itemPack = {
 		["height"] = 3,
 		["width"] = 3,
 	},
+	-- Smangsty: B42 skill-book slipcases hold five 1x2 books; keep every set consistent and meaningfully compact when packed.
 	["Base.BookAimingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookMetalWeldingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookTrappingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookTrackingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookTailoringSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookReloadingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookPotterySet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookBlacksmithSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookMechanicsSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookMasonrySet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookLongBladeSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookFlintKnappingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookGlassmakingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookForagingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookFishingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookFirstAidSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookFarmingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookElectricianSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookCookingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookCarvingSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookCarpentrySet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookButcheringSet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
 	},
 	["Base.BookHusbandrySet"] = {
 		["maxStackSize"] = 1,
 		["height"] = 3,
-		["width"] = 3,
+		["width"] = 2,
+	},
+	["Base.BookMaintenanceSet"] = {
+		["maxStackSize"] = 1,
+		["height"] = 3,
+		["width"] = 2,
 	},
 	["Base.Whisk"] = {
 		["maxStackSize"] = 2,
@@ -533,11 +540,6 @@ local itemPack = {
 		["height"] = 3,
 		["width"] = 1,
 	},
-	["Base.IronRod"] = {
-		["maxStackSize"] = 1,
-		["height"] = 3,
-		["width"] = 1,
-	},
 	["Base.Katana"] = {
 		["maxStackSize"] = 1,
 		["height"] = 4,
@@ -724,12 +726,12 @@ local itemPack = {
 		["width"] = 2,
 	},
 	["Base.MilkBottle"] = {
-		["maxStackSize"] = 9,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
 	["Base.JuiceFruitpunch"] = {
-		["maxStackSize"] = 9,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -774,19 +776,19 @@ local itemPack = {
 		["width"] = 1,
 	},
 	["Base.BBQSauce"] = {
-		["maxStackSize"] = 4,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
 	["Base.BathTowel"] = {
-		["maxStackSize"] = 3,
-		["height"] = 2,
-		["width"] = 1,
-	},
-	["Base.BathTowelWet"] = {
 		["maxStackSize"] = 2,
 		["height"] = 2,
-		["width"] = 1,
+		["width"] = 2,
+	},
+	["Base.BathTowelWet"] = {
+		["maxStackSize"] = 1,
+		["height"] = 2,
+		["width"] = 2,
 	},
 	["Base.BorisBadger"] = {
 		["maxStackSize"] = 1,
@@ -794,12 +796,12 @@ local itemPack = {
 		["width"] = 2,
 	},
 	["Base.Gloves_BoxingRed"] = {
-		["maxStackSize"] = 8,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 2,
 	},
 	["Base.Gloves_BoxingBlue"] = {
-		["maxStackSize"] = 8,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 2,
 	},
@@ -819,7 +821,7 @@ local itemPack = {
 		["width"] = 1,
 	},
 	["Base.Corndog"] = {
-		["maxStackSize"] = 9,
+		["maxStackSize"] = 4,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -879,7 +881,7 @@ local itemPack = {
 		["width"] = 1,
 	},
 	["Base.Mustard"] = {
-		["maxStackSize"] = 4,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -954,7 +956,7 @@ local itemPack = {
 		["width"] = 1,
 	},
 	["Base.ToyCar"] = {
-		["maxStackSize"] = 8,
+		["maxStackSize"] = 4,
 		["height"] = 1,
 		["width"] = 2,
 	},
@@ -1009,7 +1011,7 @@ local itemPack2 = {
 		["width"] = 2,
 	},
 	["Base.Pliers"] = {
-		["maxStackSize"] = 3,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -1269,7 +1271,7 @@ local itemPack2 = {
 		["width"] = 1,
 	},
 	["Base.GlassPanel"] = {
-		["maxStackSize"] = 10,
+		["maxStackSize"] = 4,
 		["height"] = 2,
 		["width"] = 2,
 	},
@@ -1279,9 +1281,9 @@ local itemPack2 = {
 		["width"] = 4,
 	},
 	["Base.Plate"] = {
-		["maxStackSize"] = 5,
-		["height"] = 1,
-		["width"] = 1,
+		["maxStackSize"] = 3,
+		["height"] = 2,
+		["width"] = 2,
 	},
 	["Base.BeerCanPack"] = {
 		["maxStackSize"] = 1,
@@ -1489,7 +1491,7 @@ local itemPack2 = {
 		["width"] = 2,
 	},
 	["Base.CleaningLiquid2"] = {
-		["maxStackSize"] = 3,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -1589,7 +1591,7 @@ local itemPack2 = {
 		["width"] = 2,
 	},
 	["Base.HolePuncher"] = {
-		["maxStackSize"] = 3,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -1597,11 +1599,6 @@ local itemPack2 = {
 		["maxStackSize"] = 99,
 		["height"] = 1,
 		["width"] = 1,
-	},
-	["Base.PlasticTray"] = {
-		["maxStackSize"] = 1,
-		["height"] = 2,
-		["width"] = 2,
 	},
 	["Base.CardDeck"] = {
 		["maxStackSize"] = 1,
@@ -1647,11 +1644,6 @@ local itemPack2 = {
 		["maxStackSize"] = 1,
 		["height"] = 4,
 		["width"] = 3,
-	},
-	["Base.GlazeBowl"] = {
-		["maxStackSize"] = 1,
-		["height"] = 1,
-		["width"] = 1,
 	},
 	["Base.AdhesiveTapeBox"] = {
 		["maxStackSize"] = 1,
@@ -1709,11 +1701,6 @@ local itemPack2 = {
 		["width"] = 2,
 	},
 	["Base.IronIngot"] = {
-		["maxStackSize"] = 1,
-		["height"] = 1,
-		["width"] = 2,
-	},
-	["Base.PigIronIngot"] = {
 		["maxStackSize"] = 1,
 		["height"] = 1,
 		["width"] = 2,
@@ -1834,7 +1821,7 @@ local itemPack3 = {
 		["width"] = 2,
 	},
 	["Base.Calipers"] = {
-		["maxStackSize"] = 4,
+		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,
 	},
@@ -1912,11 +1899,6 @@ local itemPack4 = {
 		["height"] = 1,
 		["width"] = 2,
 	},
-	["Base.KatePic"] = {
-		["maxStackSize"] = 1,
-		["height"] = 8,
-		["width"] = 8,
-	},
 	["Base.BalsamicVinegar"] = {
 		["maxStackSize"] = 1,
 		["height"] = 2,
@@ -1973,7 +1955,7 @@ local itemPack4 = {
 		["width"] = 2,
 	},
 	["Base.EggOmelette"] = {
-		["maxStackSize"] = 10,
+		["maxStackSize"] = 3,
 		["height"] = 1,
 		["width"] = 2,
 	},
@@ -2403,6 +2385,12 @@ local itemPack4 = {
 		["width"] = 1,
 	},
 	["Base.Sugar"] = {
+		["maxStackSize"] = 2,
+		["height"] = 2,
+		["width"] = 1,
+	},
+	-- Smangsty: Brown and white sugar are the same 0.6-weight package form factor in B42.
+	["Base.SugarBrown"] = {
 		["maxStackSize"] = 2,
 		["height"] = 2,
 		["width"] = 1,

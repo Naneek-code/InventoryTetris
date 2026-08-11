@@ -15,9 +15,13 @@ local function doesItemMatch(moveProps, item, validNameMap)
     return false
 end
 
-function ISMoveableCursor.tetris_jitTransferItems(playerObj, moveProps, _origSpriteName)
+function ISMoveableCursor.tetris_jitTransferItems(playerObj, moveProps, _origSpriteName, mode)
     local playerNum = playerObj:getPlayerNum()
-    if not ISMoveableCursor.mode[playerNum] == "place" then
+    -- Smangsty: Use the action's explicit mode; cursor-global state can be stale or unavailable across SP/MP realms.
+    if mode ~= "place" then
+        return
+    end
+    if not moveProps then
         return
     end
 
