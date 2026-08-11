@@ -7,6 +7,12 @@ local TetrisPocketData = require("InventoryTetris/Data/TetrisPocketData")
 local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
 local OPT = require("InventoryTetris/Settings")
+
+local DEV_EDITOR_CONTENT_Y = 250
+local DEV_EDITOR_SIDE_MARGIN = 48
+-- Smangsty: Leave room below the scaled preview for the editor's bottom add-grid buttons before drawing footer text.
+local DEV_EDITOR_FOOTER_GAP = 56
+local DEV_EDITOR_FOOTER_HEIGHT = 36
 local ContextUtil = require("Notloc/ContextUtil")
 local DevItemRenderer = require("InventoryTetris/Dev/DevItemRenderer")
 local ItemGridContainerUI = nil -- Required on demand to avoid circular dependencies
@@ -530,6 +536,13 @@ local function clearQuickButtons(context, quickId)
     context[quickId] = {};
 end
 
+function TetrisDevTool._getContainerEditorLayout(containerUi)
+    local footerY = containerUi:getY() + containerUi:getHeight() + DEV_EDITOR_FOOTER_GAP
+    local width = math.max(containerUi:getWidth() + DEV_EDITOR_SIDE_MARGIN, 450)
+    local height = footerY + DEV_EDITOR_FOOTER_HEIGHT
+    return width, height, footerY
+end
+
 function TetrisDevTool.remakeContainerUi(editWindow, realInv)
     -- Required on demand to avoid circular dependencies
     ItemGridContainerUI = ItemGridContainerUI or require("InventoryTetris/UI/Container/ItemGridContainerUI")
@@ -550,7 +563,7 @@ function TetrisDevTool.remakeContainerUi(editWindow, realInv)
     containerUi:removeChild(containerUi.overflowRenderer);
 
     editWindow:addChild(containerUi);
-    containerUi:setY(250);
+    containerUi:setY(DEV_EDITOR_CONTENT_Y);
     editWindow.containerUi = containerUi;
 
     -- Resize handles
@@ -659,6 +672,8 @@ function TetrisDevTool.openContainerGridEditor(sourceInventory, inventoryPane, c
     editWindow.containerDataKey = dataKey;
     editWindow.newContainerDefinition = {}
     copyTable(containerDef, editWindow.newContainerDefinition);
+    -- Smangsty: Editor previews are tooling surfaces and must never participate in Search Mode.
+    editWindow.newContainerDefinition._devPreview = true;
 
     editWindow.type = type;
 
@@ -667,8 +682,9 @@ function TetrisDevTool.openContainerGridEditor(sourceInventory, inventoryPane, c
     editWindow.reflow = function(self)
         self.containerUi:applyScales(OPT.SCALE, OPT.CONTAINER_INFO_SCALE)
         self.containerUi.containerGrid:refresh();
-        self:setWidth(math.max(self.containerUi:getWidth() + 48, 450));
-        self:setHeight(self.containerUi:getHeight() + 250 + 48);
+        local editorWidth, editorHeight = TetrisDevTool._getContainerEditorLayout(self.containerUi);
+        self:setWidth(editorWidth);
+        self:setHeight(editorHeight);
         self.quickButtonsDirty = true
     end
 
@@ -813,7 +829,7 @@ function TetrisDevTool.openContainerGridEditor(sourceInventory, inventoryPane, c
         self:drawRect(1, 1, self:getWidth()-2, self:getHeight()-2, 0.75, 0, 0, 0);
 
         -- Draw a cyan rectangle behind the container grid
-        self:drawRect(0, 250, self:getWidth(), self:getHeight() - 250, 0.5, 0, 0.7, 1);
+        self:drawRect(0, DEV_EDITOR_CONTENT_Y, self:getWidth(), self:getHeight() - DEV_EDITOR_CONTENT_Y, 0.5, 0, 0.7, 1);
 
         if not self.quickButtonsDirty then
             return;
@@ -929,7 +945,9 @@ function TetrisDevTool.openContainerGridEditor(sourceInventory, inventoryPane, c
             end
         end
 
-        self:drawText("Slot Count: " .. slotCount, 10, 460, 1, 1, 1, 1, UIFont.Medium);
+        -- Smangsty: Anchor footer text below the scaled preview instead of a fixed Y that overlaps at 2x+ Grid Scale.
+        local _, _, slotCountY = TetrisDevTool._getContainerEditorLayout(self.containerUi);
+        self:drawText("Slot Count: " .. slotCount, 10, slotCountY, 1, 1, 1, 1, UIFont.Medium);
     end
 
     titleBar:addChild(closeButton);
@@ -1213,6 +1231,7 @@ end
 function TetrisDevTool.applyContainerEdit(key, newDef, container)
     newDef._autoCalculated = nil; -- Avoid saving this value
     newDef.invalidCategories = nil;
+    newDef._devPreview = nil; -- Smangsty: Never export the transient editor-only Search Mode marker.
     TetrisDevTool.containerEdits[key] = newDef;
     writeJsonFile(CONTAINER_FILENAME..".txt", TetrisDevTool.containerEdits);
 
@@ -1231,6 +1250,7 @@ end
 function TetrisDevTool.applyPocketEdit(key, newDef)
     newDef._autoCalculated = nil; -- Avoid saving this value
     newDef.invalidCategories = nil;
+    newDef._devPreview = nil; -- Smangsty: Never export the transient editor-only Search Mode marker.
 
     TetrisDevTool.pocketEdits[key] = newDef;
     writeJsonFile(POCKET_FILENAME..".txt", TetrisDevTool.pocketEdits);

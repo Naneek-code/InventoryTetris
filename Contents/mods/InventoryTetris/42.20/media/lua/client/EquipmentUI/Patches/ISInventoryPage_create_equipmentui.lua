@@ -1,4 +1,5 @@
-require("InventoryAndLoot") -- I do not remember what this is
+-- Smangsty: Require the B42 inventory page directly; the legacy InventoryAndLoot alias is not portable to Linux.
+require("ISUI/ISInventoryPage")
 
 local SETTINGS = require("EquipmentUI/Settings")
 local SidePanelManager = require("Notloc/UI/SidePanels/SidePanelManager")

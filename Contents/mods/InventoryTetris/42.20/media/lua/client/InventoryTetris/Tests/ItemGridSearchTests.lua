@@ -36,6 +36,18 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Grid Search Tests", f
         TestUtils.assert(containerGrid.containerDefinition)
     end
 
+    function Tests.test_devPreviewNeverRequiresSearch()
+        local containerGrid = TestHelper.createContainerGrid_5x5()
+        local grid = containerGrid.grids[1]
+        local original = grid.containerDefinition._devPreview
+
+        grid.containerDefinition._devPreview = true
+        local isUnsearched = grid:isUnsearched(playerNum)
+        grid.containerDefinition._devPreview = original
+
+        TestUtils.assert(not isUnsearched)
+    end
+
     function Tests.test_stacksAreHidden()
         local containerGrid = TestHelper.createContainerGrid_5x5()
         local item = TestHelper.createItem_1x1(containerGrid.inventory)

@@ -1,0 +1,12 @@
+# Keep historically LF-normalized source files stable when edited on Windows.
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Data/TetrisItemCategory.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/DataPacks/TetrisDataPack_Containers.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/DataPacks/TetrisDataPack_Items.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Dev/TetrisDevTool.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Model/ItemGrid.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Networking/TetrisClient.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Tests/ItemGridSearchTests.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/client/InventoryTetris/Tests/ItemGridTests.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/server/InventoryTetris/Networking/TetrisServer.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/server/InventoryTetris/Patches/Building/ISMoveablesAction_JitTransferItems.lua text eol=lf
+Contents/mods/InventoryTetris/42.20/media/lua/shared/InventoryTetris/Patches/ISMoveablesAction_jit_transfer.lua text eol=lf
