@@ -70,16 +70,19 @@ TestFramework.registerTestModule("Inventory Tetris", "Compatibility Regression T
     end
 
     function Tests.test_dragPreviewSizeLookupFailsClosedOnMissingItemData()
+        local nilOk, nilWidth, nilHeight = pcall(TetrisItemData.tryGetItemSize, nil, false)
+        TestUtils.assert(nilOk and nilWidth == nil and nilHeight == nil)
+
         local item = instanceItem("Base.Sugar")
         local originalGetItemData = TetrisItemData._getItemData
         TetrisItemData._getItemData = function()
-            return nil
+            return {width = nil, height = 2}
         end
 
-        local ok, width, height = pcall(TetrisItemData.tryGetItemSize, item, false)
+        local malformedOk, width, height = pcall(TetrisItemData.tryGetItemSize, item, false)
         TetrisItemData._getItemData = originalGetItemData
 
-        TestUtils.assert(ok and width == nil and height == nil)
+        TestUtils.assert(malformedOk and width == nil and height == nil)
     end
 
     return Tests

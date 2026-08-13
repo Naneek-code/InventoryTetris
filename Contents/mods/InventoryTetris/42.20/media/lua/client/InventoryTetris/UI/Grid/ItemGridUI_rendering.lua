@@ -10,12 +10,13 @@ local GridTransferQueueData = require("InventoryTetris/Model/GridTransferQueueDa
 local DragAndDrop = require("InventoryTetris/System/DragAndDrop")
 local ControllerDragAndDrop = require("InventoryTetris/System/ControllerDragAndDrop")
 
-local getItemSize = TetrisItemData.getItemSize
 local getPreviewItemSize = TetrisItemData.tryGetItemSize
-local getPreviewItemSize = TetrisItemData.tryGetItemSize
-local getPreviewItemSize = TetrisItemData.tryGetItemSize
-local getPreviewItemSize = TetrisItemData.tryGetItemSize
-local getPreviewItemSize = TetrisItemData.tryGetItemSize
+
+local function getRenderItemSize(item, isRotated)
+    local width, height = getPreviewItemSize(item, isRotated)
+    if not width then return 1, 1 end
+    return width, height
+end
 
 -- Premade textures for supported scales so that any scale gets pixel perfect grids
 local GridBackgroundTexturesByScale = {
@@ -273,12 +274,12 @@ function ItemGridUI:renderIncomingTransfers()
     local playerObj = self.playerObj
 
     for _, action in pairs(incomingActions) do
-        local stack = ItemStack.createTempStack(action.item)
+        local stack = action.item and ItemStack.createTempStack(action.item) or nil
         local item = action.item
-        if action.gridX and action.gridY then
+        if stack and action.gridX and action.gridY then
             local x = action.gridX * OPT.CELL_SIZE - action.gridX
             local y = action.gridY * OPT.CELL_SIZE - action.gridY
-            local w, h = getItemSize(item, action.isRotated)
+            local w, h = getRenderItemSize(item, action.isRotated)
             ItemGridUI._renderSingleGridStack(self, playerObj, stack, item, x, y, w, h, 0.5, action.isRotated)
         end
     end
@@ -320,7 +321,7 @@ function ItemGridUI:renderControllerSelection()
     if stack then
         local item = ItemStack.getFrontItem(stack, self.grid.inventory)
         if not item then return end
-        w, h = getItemSize(item, stack.isRotated)
+        w, h = getRenderItemSize(item, stack.isRotated)
         x = stack.x
         y = stack.y
     end
@@ -376,7 +377,7 @@ function ItemGridUI:renderStackLoop(inventory, stacks, alphaMult, searchSession)
     local count = #stacks
     for i=1,count do
         local stack = stacks[i]
-        local item = stack._frontItem or ItemStack.getFrontItem(stack, inventory)
+        local item = ItemStack.getFrontItem(stack, inventory)
         local itemId = stack._frontItemId
         if item then
             local x, y = stack.x, stack.y
@@ -392,7 +393,12 @@ function ItemGridUI:renderStackLoop(inventory, stacks, alphaMult, searchSession)
 
                 local data = devItemData[fType] or itemData[fType] or TetrisItemData._getItemDataByFullType(item, fType, isSquished)
 
-                local w, h = data.width, data.height
+                local w, h
+                if type(data) == "table" and type(data.width) == "number" and type(data.height) == "number" and data.width >= 1 and data.height >= 1 then
+                    w, h = data.width, data.height
+                else
+                    w, h = getRenderItemSize(item, false)
+                end
                 if stack.isRotated then
                     w, h = h, w
                 end
@@ -537,8 +543,8 @@ function ItemGridUI:_renderControllerDrag(opacity)
         local isRotated = ControllerDragAndDrop.isDraggedItemRotated(self.playerNum)
         local x = self.selectedX * OPT.CELL_SIZE - self.selectedX
         local y = self.selectedY * OPT.CELL_SIZE - self.selectedY
-        local w, h = getItemSize(item, isRotated)
-        self:_renderSingleGridStack(self.playerObj, stack, item, x, y, w, h, opacity, isRotated)
+        local w, h = getRenderItemSize(item, isRotated)
+        if item and stack then self:_renderSingleGridStack(self.playerObj, stack, item, x, y, w, h, opacity, isRotated) end
     end
 end
 

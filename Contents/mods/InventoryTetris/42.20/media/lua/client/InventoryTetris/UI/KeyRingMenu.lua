@@ -13,7 +13,7 @@ local function getAnchor(gridUi, gridStack, item)
     if not gridUi or not gridStack then return nil, nil end
 
     local stride = OPT.CELL_SIZE - 1
-    local width = TetrisItemData.getItemSize(item, gridStack.isRotated)
+    local width = TetrisItemData.tryGetItemSize(item, gridStack.isRotated) or 1
     local x = gridUi:getAbsoluteX() + gridStack.x * stride + width * stride + 1
     local y = gridUi:getAbsoluteY() + gridStack.y * stride
     return x, y
