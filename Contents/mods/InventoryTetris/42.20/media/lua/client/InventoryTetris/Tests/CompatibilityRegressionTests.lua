@@ -69,5 +69,23 @@ TestFramework.registerTestModule("Inventory Tetris", "Compatibility Regression T
         TestUtils.assert(TetrisItemData.getMaxStackSize(brownSugar) == TetrisItemData.getMaxStackSize(sugar))
     end
 
+    function Tests.test_missingItemDataUsesSafeFallback()
+        local item = instanceItem("Base.Sugar")
+        local originalGetItemData = TetrisItemData._getItemData
+        TetrisItemData._getItemData = function()
+            return nil
+        end
+
+        local sizeOk, width, height = pcall(TetrisItemData.getItemSize, item, false)
+        local rotatedOk, rotatedWidth, rotatedHeight = pcall(TetrisItemData.getItemSize, item, true)
+        local stackOk, maxStackSize = pcall(TetrisItemData.getMaxStackSize, item)
+
+        TetrisItemData._getItemData = originalGetItemData
+
+        TestUtils.assert(sizeOk and width == 1 and height == 1)
+        TestUtils.assert(rotatedOk and rotatedWidth == 1 and rotatedHeight == 1)
+        TestUtils.assert(stackOk and maxStackSize == 1)
+    end
+
     return Tests
 end)

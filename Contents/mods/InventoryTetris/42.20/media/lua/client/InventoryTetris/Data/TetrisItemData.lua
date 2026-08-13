@@ -39,25 +39,39 @@ TetrisItemCalculator._dynamicSizeItems = {
     ["FishFillet"] = true,
 }
 
+local function getSafeItemDimensions(data)
+    if type(data) ~= "table" then
+        return 1, 1
+    end
+
+    local width = tonumber(data.width)
+    local height = tonumber(data.height)
+    if not width or not height or width < 1 or height < 1 then
+        return 1, 1
+    end
+
+    return width, height
+end
+
 ---@param item InventoryItem
 ---@param isRotated boolean
 ---@return integer
 ---@return integer
 function TetrisItemData.getItemSize(item, isRotated)
-    local data = TetrisItemData._getItemData(item)
+    local width, height = getSafeItemDimensions(TetrisItemData._getItemData(item))
     if isRotated then
-        return data.height, data.width
+        return height, width
     else
-        return data.width, data.height
+        return width, height
     end
 end
 
 function TetrisItemData.getItemSizeUnsquished(item, isRotated)
-    local data = TetrisItemData._getItemData(item, true)
+    local width, height = getSafeItemDimensions(TetrisItemData._getItemData(item, true))
     if isRotated then
-        return data.height, data.width
+        return height, width
     else
-        return data.width, data.height
+        return width, height
     end
 end
 
@@ -68,7 +82,7 @@ end
 
 function TetrisItemData.getMaxStackSize(item)
     local data = TetrisItemData._getItemData(item)
-    return data.maxStackSize or 1
+    return type(data) == "table" and data.maxStackSize or 1
 end
 
 function TetrisItemData.getSquishedFullType(item)
