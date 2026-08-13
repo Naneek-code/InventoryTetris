@@ -69,5 +69,18 @@ TestFramework.registerTestModule("Inventory Tetris", "Compatibility Regression T
         TestUtils.assert(TetrisItemData.getMaxStackSize(brownSugar) == TetrisItemData.getMaxStackSize(sugar))
     end
 
+    function Tests.test_dragPreviewSizeLookupFailsClosedOnMissingItemData()
+        local item = instanceItem("Base.Sugar")
+        local originalGetItemData = TetrisItemData._getItemData
+        TetrisItemData._getItemData = function()
+            return nil
+        end
+
+        local ok, width, height = pcall(TetrisItemData.tryGetItemSize, item, false)
+        TetrisItemData._getItemData = originalGetItemData
+
+        TestUtils.assert(ok and width == nil and height == nil)
+    end
+
     return Tests
 end)

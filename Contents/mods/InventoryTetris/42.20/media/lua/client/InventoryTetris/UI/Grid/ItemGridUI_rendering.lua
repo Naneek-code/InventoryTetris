@@ -11,6 +11,11 @@ local DragAndDrop = require("InventoryTetris/System/DragAndDrop")
 local ControllerDragAndDrop = require("InventoryTetris/System/ControllerDragAndDrop")
 
 local getItemSize = TetrisItemData.getItemSize
+local getPreviewItemSize = TetrisItemData.tryGetItemSize
+local getPreviewItemSize = TetrisItemData.tryGetItemSize
+local getPreviewItemSize = TetrisItemData.tryGetItemSize
+local getPreviewItemSize = TetrisItemData.tryGetItemSize
+local getPreviewItemSize = TetrisItemData.tryGetItemSize
 
 -- Premade textures for supported scales so that any scale gets pixel perfect grids
 local GridBackgroundTexturesByScale = {
@@ -456,7 +461,8 @@ function ItemGridUI:renderDragItemPreview()
         if hoveredItem and hoveredItem:IsInventoryContainer() then
             local x = hoveredStack.x * OPT.CELL_SIZE - hoveredStack.x
             local y = hoveredStack.y * OPT.CELL_SIZE - hoveredStack.y
-            local w, h = getItemSize(hoveredItem, hoveredStack.isRotated)
+            local w, h = getPreviewItemSize(hoveredItem, hoveredStack.isRotated)
+            if not w then return end
             self:drawRect(x, y, w * OPT.CELL_SIZE - w, h * OPT.CELL_SIZE - h, 0.5, 0.2, 1, 1)
             return
         end
@@ -471,7 +477,8 @@ function ItemGridUI:renderDragItemPreview()
     if not hoveredStack or hoveredItem == item then
         local gridX, gridY = -1, -1
         local isRotated = isJoyPad and ControllerDragAndDrop.isDraggedItemRotated(self.playerNum) or DragAndDrop.isDraggedItemRotated()
-        local itemW, itemH = getItemSize(item, isRotated)
+        local itemW, itemH = getPreviewItemSize(item, isRotated)
+        if not itemW then return end
         if not isJoyPad then
             local x = self:getMouseX()
             local y = self:getMouseY()
@@ -497,7 +504,8 @@ function ItemGridUI:renderDragItemPreview()
         return
     end
 
-    local w, h = getItemSize(ItemStack.getFrontItem(hoveredStack, self.grid.inventory), hoveredStack.isRotated)
+    local w, h = getPreviewItemSize(ItemStack.getFrontItem(hoveredStack, self.grid.inventory), hoveredStack.isRotated)
+    if not w then return end
 
     -- Hovering another stack
     if ItemStack.canAddItem(hoveredStack, item) then
