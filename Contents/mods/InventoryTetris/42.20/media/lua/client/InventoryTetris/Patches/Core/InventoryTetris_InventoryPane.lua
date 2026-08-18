@@ -251,6 +251,26 @@ Events.OnGameBoot.Add(function()
         self:updateTetrisContentPanel()
     end
 
+    -- Smangsty: Secondary-grid changes need new geometry, not a full UI reincarnation cycle.
+    function ISInventoryPane:relayoutItemGrids()
+        if not self.gridContainerUis then return end
+
+        local x = 10
+        local y = 10
+        for _, gridContainerUi in ipairs(self.gridContainerUis) do
+            gridContainerUi:setX(10)
+            gridContainerUi:setY(y)
+            x = math.max(x, gridContainerUi:getX() + gridContainerUi:getWidth() + 8)
+            y = y + gridContainerUi:getHeight() + 8
+        end
+
+        self.tetrisLastScrollX = 0
+        self.tetrisLastScrollY = 0
+        self:setScrollWidth(x)
+        self:setScrollHeight(y)
+        self:updateTetrisContentPanel()
+    end
+
     function ISInventoryPane:updateTetrisContentPanel()
         local lastX = self.tetrisLastScrollX or 0
         local lastY = self.tetrisLastScrollY or 0
