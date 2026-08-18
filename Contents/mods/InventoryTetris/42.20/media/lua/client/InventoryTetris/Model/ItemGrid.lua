@@ -233,15 +233,18 @@ function ItemGrid:gatherSameItems(stack)
         for itemId, _ in pairs(s.itemIDs) do
             local item = self.inventory:getItemWithID(itemId)
 
-            if not ItemStack.canAddItem(stack, item) then
-                break
-            end
+            -- Smangsty: Cached MP stack IDs can briefly outlive the item; validation will sweep the ghost on refresh.
+            if item then
+                if not ItemStack.canAddItem(stack, item) then
+                    break
+                end
 
-            ItemStack.removeItem(s, item)
-            ItemStack.addItem(stack, item)
+                ItemStack.removeItem(s, item)
+                ItemStack.addItem(stack, item)
 
-            if s.count == 0 then
-                self:_removeStack(s)
+                if s.count == 0 then
+                    self:_removeStack(s)
+                end
             end
         end
     end

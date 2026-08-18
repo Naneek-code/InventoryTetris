@@ -103,6 +103,8 @@ Events.OnGameBoot.Add(function()
 
     local og_canMergeAction = ISInventoryTransferAction.canMergeAction
     function ISInventoryTransferAction:canMergeAction(action)
+        -- Smangsty: Vanilla wipes merged action tables, so an action must never be allowed to merge with itself.
+        if not action or self == action then return false end
         if self.preventMerge or action.preventMerge then return false end
 
         local canMerge = og_canMergeAction(self, action)

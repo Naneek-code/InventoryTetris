@@ -765,11 +765,20 @@ function ItemContainerGrid:removeOnSecondaryGridsRemoved(obj)
     self._onSecondaryGridsRemoved[obj] = nil
 end
 
+local function snapshotSecondaryGridListeners(listeners)
+    local snapshot = {}
+    for obj, callback in pairs(listeners) do
+        snapshot[#snapshot + 1] = { obj = obj, callback = callback }
+    end
+    return snapshot
+end
+
 function ItemContainerGrid:addSecondaryGrid(secondaryTarget)
     local grids = self:createSecondaryGrids(secondaryTarget)
     self.secondaryGrids[secondaryTarget] = grids
-    for obj, callback in pairs(self._onSecondaryGridsAdded) do
-        callback(obj, secondaryTarget, grids)
+    -- Smangsty: Listeners may unregister while handling pocket changes; dispatch a stable snapshot.
+    for _, listener in ipairs(snapshotSecondaryGridListeners(self._onSecondaryGridsAdded)) do
+        listener.callback(listener.obj, secondaryTarget, grids)
     end
     return grids
 end
@@ -792,8 +801,8 @@ function ItemContainerGrid:removeSecondaryGrid(secondaryTarget, deleteModData)
     end
 
     self.secondaryGrids[secondaryTarget] = nil
-    for obj, callback in pairs(self._onSecondaryGridsRemoved) do
-        callback(obj, secondaryTarget)
+    for _, listener in ipairs(snapshotSecondaryGridListeners(self._onSecondaryGridsRemoved)) do
+        listener.callback(listener.obj, secondaryTarget)
     end
 
     return stacks
