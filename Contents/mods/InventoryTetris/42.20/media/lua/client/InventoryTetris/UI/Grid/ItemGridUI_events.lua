@@ -149,7 +149,10 @@ function ItemGridUI:cancelDragDropItem()
         if not ISUIElement.isMouseOverAnyUI() then
             for itemId, _ in pairs(gridStack.itemIDs) do
                 local itm = self.grid.inventory:getItemWithID(itemId)
-                ISInventoryPaneContextMenu.dropItem(itm, self.playerNum)
+                -- Smangsty: Grid stacks can briefly outlive their items during MP sync; stale IDs are not items.
+                if itm then
+                    ISInventoryPaneContextMenu.dropItem(itm, self.playerNum)
+                end
             end
         end
     end
@@ -596,9 +599,13 @@ function ItemGridUI:quickMoveItemToContainer(gridStack, targetContainers)
 
     for itemId, _ in pairs(gridStack.itemIDs) do
         local item = self.grid.inventory:getItemWithID(itemId)
-        local transfer = ISInventoryTransferAction:new(playerObj, item, item:getContainer(), targetContainer)
-        transfer.isRotated = gridStack.isRotated
-        ISTimedActionQueue.add(transfer)
+        -- Smangsty: MP can invalidate one cached stack entry before the grid catches up; skip ghosts safely.
+        local sourceContainer = item and item:getContainer() or nil
+        if item and sourceContainer then
+            local transfer = ISInventoryTransferAction:new(playerObj, item, sourceContainer, targetContainer)
+            transfer.isRotated = gridStack.isRotated
+            ISTimedActionQueue.add(transfer)
+        end
     end
 end
 
