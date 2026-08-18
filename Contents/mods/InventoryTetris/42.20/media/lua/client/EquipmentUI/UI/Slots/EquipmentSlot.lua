@@ -55,8 +55,6 @@ function EquipmentSlot:initialise()
     ControllerNode
         :injectControllerNode(self)
         :setJoypadDownHandler(self.controllerNodeOnJoypadDown)
-
-    self.isController = self.controllerNode:isController(getSpecificPlayer(self.playerNum))
 end
 
 function EquipmentSlot:setItem(item)
@@ -96,9 +94,10 @@ function EquipmentSlot:render()
     local tex = item:getTex()
     -- Smangsty: Use B42.20 aspect-fit rendering so item icons stay contained.
     self:drawTextureScaledAspect(tex, 1, 1, self.width - 2, self.height - 2, alpha, self.getItemColor(self.item));
-    if not self.isController and self:isMouseOver() then
+    -- Smangsty: Controller presence is not controller ownership; focused joypad input wins, otherwise mouse hover stays live.
+    if self.controllerNode.isFocused then
         self.bodySlotDisplay:doTooltipForItem(self, self.item);
-    elseif self.controllerNode.isFocused then
+    elseif self:isMouseOver() then
         self.bodySlotDisplay:doTooltipForItem(self, self.item);
     end
 end
@@ -221,7 +220,7 @@ EquipmentSlot.openItemContextMenu = function(uiContext, x, y, item, invPane, pla
         table.insert(menu.options, unequipIdx+1, unequipAllOption)
     end
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         uiContext.controllerNode:focusContextMenu(playerNum, menu)
     end
 end

@@ -180,7 +180,7 @@ function TetrisWindowManager:removeChildWindow(window)
 end
 
 function TetrisWindowManager:keepChildWindowsOnTop()
-    local isController = JoypadState.players[self.playerNum + 1] ~= nil
+    local isController = self.inventoryPane and self.inventoryPane.doController == true
     if isController then return end
     
     for _, child in ipairs(self.childWindows) do
@@ -251,7 +251,8 @@ function TetrisWindowManager:openContainerPopup(item)
         end
     end
 
-    local isController = JoypadState.players[self.playerNum + 1] ~= nil
+    -- Smangsty: Match vanilla's active inventory input mode instead of treating a connected pad as permanent controller ownership.
+    local isController = self.inventoryPane and self.inventoryPane.doController == true
     local x = isController and self.inventoryPane:getAbsoluteX() or getMouseX()
     local y = isController and self.inventoryPane:getAbsoluteY() or getMouseY()
 

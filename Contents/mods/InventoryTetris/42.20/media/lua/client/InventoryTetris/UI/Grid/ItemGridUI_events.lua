@@ -747,7 +747,7 @@ function ItemGridUI.openItemContextMenu(uiContext, x, y, item, inventoryPane, pl
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, ItemStack.createVanillaStackListFromItem(item, inventoryPane), uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu
@@ -762,7 +762,7 @@ function ItemGridUI.openStackContextMenu(uiContext, x, y, gridStack, inventory, 
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, ItemStack.createVanillaStackListFromItems(items, inventoryPane), uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu
@@ -783,7 +783,7 @@ function ItemGridUI.openContextMenuForVanillaStacks(uiContext, x, y, vanillaStac
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, vanillaStacks, uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu

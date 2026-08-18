@@ -23,7 +23,7 @@ function ISInventoryPage:onJoypadDown(button)
 end
 
 -- Resize UIs when toggling the equipment UI
-local standAloneOpen = false
+local standAloneOpenByPlayer = {}
 function ISInventoryPage:toggleEquipmentUIForController()
     local playerNum = self.player
     if not playerNum then return end
@@ -58,12 +58,12 @@ function ISInventoryPage:toggleEquipmentUIForController()
 
     -- If we're opening the equipment UI and there's enough space to do so, just open it
     if not equipmentPanel.isClosed and inventoryPage:getX() - equipmentPanel:getWidth() > x then
-        standAloneOpen = true
+        standAloneOpenByPlayer[playerNum] = true
         return
     end
 
-    if standAloneOpen then
-        standAloneOpen = false
+    if standAloneOpenByPlayer[playerNum] then
+        standAloneOpenByPlayer[playerNum] = nil
         return -- Just close the equipment UI without resizing the other UIs
     end
 

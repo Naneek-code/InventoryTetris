@@ -75,8 +75,6 @@ function EquipmentSuperSlot:initialise()
             self:setExpanded(false)
         end)
         :setChildrenNodeProvider(self.getVisibleControllerNodes, self)
-
-    self.isController = self.controllerNode:isController(getSpecificPlayer(self.playerNum))
 end
 
 function EquipmentSuperSlot:createChildren()
@@ -323,7 +321,10 @@ function EquipmentSuperSlot:render()
         self:drawRectBorder(Settings.SUPER_SLOT_SIZE - 1, 0, Settings.SUPER_SLOT_SUB_ITEM_WIDTH + 1, Settings.SUPER_SLOT_SIZE, 1, 1, 1, 1);
     end
 
-    if not self.isController and not DragAndDrop.isDragging() and self:isMouseOver() then
+    if self.controllerNode.isFocused and not self.controllerNode.selectedChild then
+        self.bodySlotDisplay:doTooltipForItem(self, itemsToDraw[1]);
+    elseif not DragAndDrop.isDragging() and self:isMouseOver() then
+        -- Smangsty: A plugged-in controller does not get to put mouse hover in witness protection.
         local x = self:getMouseX();
         local y = self:getMouseY();
 
@@ -337,8 +338,6 @@ function EquipmentSuperSlot:render()
         else
             self.bodySlotDisplay:closeTooltip();
         end
-    elseif self.controllerNode.isFocused and not self.controllerNode.selectedChild then
-        self.bodySlotDisplay:doTooltipForItem(self, itemsToDraw[1]);
     end
 end
 
