@@ -939,7 +939,7 @@ function ItemGridUI:controllerNodeOnJoypadDown(button)
     else
         -- FuX: Restore vanilla Y behavior once no Tetris drag is active: leave inventory focus entirely.
         if button == Joypad.YButton then
-            setJoypadFocus(self.playerNum, nil)
+            ControllerNode.exitInventory(self.playerNum)
             return true
         end
 

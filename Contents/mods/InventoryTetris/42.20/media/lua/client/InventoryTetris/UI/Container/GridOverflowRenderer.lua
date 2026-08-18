@@ -256,7 +256,7 @@ function GridOverflowRenderer:controllerNodeOnJoypadDown(button)
     else
         -- FuX: Overflow focus should preserve vanilla Y-to-exit behavior just like the main grid.
         if button == Joypad.YButton then
-            setJoypadFocus(self.playerNum, nil)
+            ControllerNode.exitInventory(self.playerNum)
             return true
         end
 
