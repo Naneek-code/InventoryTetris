@@ -16,6 +16,10 @@ function GridAutoDropSystem._processItems(playerNum, items)
     local playerObj = getSpecificPlayer(playerNum)
     if not playerObj or playerObj:isDead() then return end
 
+    -- Smangsty: UI teardown/rebuild can briefly leave the player's inventory page unavailable.
+    -- Do not process auto-drop queues against a partially destroyed inventory interface.
+    if not getPlayerInventory(playerNum) then return end
+
     local isDisorganized = playerObj:hasTrait(CharacterTrait.DISORGANIZED)
     local containers = ItemUtil.getAllEquippedContainers(playerObj)
 

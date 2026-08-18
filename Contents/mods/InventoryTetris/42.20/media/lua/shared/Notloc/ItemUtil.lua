@@ -50,6 +50,11 @@ function ItemUtil.getAllEquippedContainers(playerObj, ignoreMainInventory)
     local mainInv = playerObj:getInventory()
 
     local inventoryPage = getPlayerInventory(playerObj:getPlayerNum())
+    -- Smangsty: Player UI can be transiently unavailable during legitimate teardown/rebuild.
+    if not inventoryPage or not inventoryPage.inventory or not inventoryPage.backpacks then
+        return containers
+    end
+
     local selectedContainer = inventoryPage.inventory
     if not ignoreMainInventory or selectedContainer ~= mainInv then
         table.insert(containers, selectedContainer)
