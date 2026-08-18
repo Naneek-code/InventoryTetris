@@ -6,6 +6,8 @@ local TetrisContainerData = require("InventoryTetris/Data/TetrisContainerData")
 local TetrisPocketData = require("InventoryTetris/Data/TetrisPocketData")
 local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local EquipmentSlotOverrides = require("EquipmentUI/EquipmentSlotOverrides")
+local EquipmentSlotDefinitions = require("EquipmentUI/Definitions/EquipmentSlotDefinitions")
 local OPT = require("InventoryTetris/Settings")
 
 local DEV_EDITOR_CONTENT_Y = 250
@@ -90,30 +92,36 @@ local TetrisDevTool = {}
 local ITEM_FILENAME = "InventoryTetris_ItemData"
 local CONTAINER_FILENAME = "InventoryTetris_ContainerData"
 local POCKET_FILENAME = "InventoryTetris_PocketData"
+local EQUIPMENT_SLOT_FILENAME = "InventoryTetris_EquipmentSlotData"
 
 Events.OnInitGlobalModData.Add(function()
     if TetrisDevTool.isDebugEnabled() then
         TetrisDevTool.itemEdits = readJsonFile(ITEM_FILENAME..".txt") or {};
         TetrisDevTool.containerEdits = readJsonFile(CONTAINER_FILENAME..".txt") or {};
         TetrisDevTool.pocketEdits = readJsonFile(POCKET_FILENAME..".txt") or {};
+        TetrisDevTool.equipmentSlotEdits = readJsonFile(EQUIPMENT_SLOT_FILENAME..".txt") or {};
 
         TetrisItemData._devItemData = TetrisDevTool.itemEdits;
         TetrisContainerData._devContainerDefinitions = TetrisDevTool.containerEdits;
         TetrisPocketData._devPocketDefinitions = TetrisDevTool.pocketEdits;
+        EquipmentSlotOverrides._devSlotOverrides = TetrisDevTool.equipmentSlotEdits;
     else
         TetrisDevTool.itemEdits = {}
         TetrisDevTool.containerEdits = {}
         TetrisDevTool.pocketEdits = {}
+        TetrisDevTool.equipmentSlotEdits = {}
     end
 end)
 
 function TetrisDevTool.enableOverrides()
+    EquipmentSlotOverrides._devSlotOverrides = TetrisDevTool.equipmentSlotEdits;
     TetrisItemData._devItemData = TetrisDevTool.itemEdits;
     TetrisContainerData._devContainerDefinitions = TetrisDevTool.containerEdits;
     TetrisPocketData._devPocketDefinitions = TetrisDevTool.pocketEdits;
 end
 
 function TetrisDevTool.disableOverrides()
+    EquipmentSlotOverrides._devSlotOverrides = {};
     TetrisItemData._devItemData = {};
     TetrisContainerData._devContainerDefinitions = {};
     TetrisPocketData._devPocketDefinitions = {};
@@ -166,6 +174,19 @@ function TetrisDevTool.insertDebugOptions(context, item, container, containerUi)
         local pocketMenu = ContextUtil.getOrCreateSubMenu(subMenu, "Pocket");
         pocketMenu:addOption("Edit Pocket Data", item, TetrisDevTool.openPocketEdit);
         pocketMenu:addOption("Reset Pocket Data", item, TetrisDevTool.recalculatePocketData);
+    end
+
+    if item and item:IsClothing() and not ContextUtil.getSubMenu(subMenu, "Equipment UI Slot") then
+        local bodyLocationKey = EquipmentSlotOverrides.getBodyLocationKey(item)
+        if bodyLocationKey then
+            local equipmentMenu = ContextUtil.getOrCreateSubMenu(subMenu, "Equipment UI Slot")
+            for _, slotDef in ipairs(EquipmentSlotDefinitions) do
+                equipmentMenu:addOption(getText(slotDef.name), item, TetrisDevTool.applyEquipmentSlotEdit, slotDef.name)
+            end
+            if TetrisDevTool.equipmentSlotEdits[bodyLocationKey] then
+                equipmentMenu:addOption("Reset Override", item, TetrisDevTool.resetEquipmentSlotEdit)
+            end
+        end
     end
 
     subMenu:addOption("Export Data", nil, TetrisDevTool._exportDataPack);
@@ -1261,6 +1282,23 @@ function TetrisDevTool.applyPocketEdit(key, newDef)
     TetrisDevTool.forceRefreshAllGrids();
 end
 
+function TetrisDevTool.applyEquipmentSlotEdit(item, slotName)
+    local bodyLocationKey = EquipmentSlotOverrides.getBodyLocationKey(item)
+    if not bodyLocationKey or not slotName then return end
+
+    -- Smangsty: Classify the modded BodyLocation instead of mutating somebody else's clothing script.
+    TetrisDevTool.equipmentSlotEdits[bodyLocationKey] = slotName
+    writeJsonFile(EQUIPMENT_SLOT_FILENAME..".txt", TetrisDevTool.equipmentSlotEdits)
+end
+
+function TetrisDevTool.resetEquipmentSlotEdit(item)
+    local bodyLocationKey = EquipmentSlotOverrides.getBodyLocationKey(item)
+    if not bodyLocationKey then return end
+
+    TetrisDevTool.equipmentSlotEdits[bodyLocationKey] = nil
+    writeJsonFile(EQUIPMENT_SLOT_FILENAME..".txt", TetrisDevTool.equipmentSlotEdits)
+end
+
 function TetrisDevTool.forceRefreshAllGrids()
     ItemContainerGrid._playerMainGrids = {}
     getPlayerInventory(0).inventoryPane:refreshItemGrids(true)
@@ -1271,18 +1309,23 @@ function TetrisDevTool._exportDataPack()
     local items = FormattedLuaWriter.formatLocalVariable("itemPack", TetrisDevTool.itemEdits, 1);
     local containers = FormattedLuaWriter.formatLocalVariable("containerPack", TetrisDevTool.containerEdits, 1);
     local pockets = FormattedLuaWriter.formatLocalVariable("pocketPack", TetrisDevTool.pocketEdits, 1);
+    local equipmentSlots = FormattedLuaWriter.formatLocalVariable("equipmentSlotPack", TetrisDevTool.equipmentSlotEdits, 1);
 
     local text =   'Events.OnGameBoot.Add(function() \r\n'
     text = text .. '\t' .. 'if not TetrisItemData then return end\r\n'
+    text = text .. '\t' .. 'local EquipmentSlotOverrides = require("EquipmentUI/EquipmentSlotOverrides")\r\n'
     text = text .. items
     text = text .. '\r\n'
     text = text .. containers
     text = text .. '\r\n'
     text = text .. pockets
+    text = text .. '\r\n'
+    text = text .. equipmentSlots
     text = text .. '\r\n\r\n'
     text = text .. '\t' .. 'TetrisItemData.registerItemDefinitions(itemPack)\r\n'
     text = text .. '\t' .. 'TetrisContainerData.registerContainerDefinitions(containerPack)\r\n'
     text = text .. '\t' .. 'TetrisPocketData.registerPocketDefinitions(pocketPack)\r\n'
+    text = text .. '\t' .. 'EquipmentSlotOverrides.registerSlotOverrides(equipmentSlotPack)\r\n'
     text = text .. 'end)\r\n'
 
     writeText("TetrisDataPack.txt", text);

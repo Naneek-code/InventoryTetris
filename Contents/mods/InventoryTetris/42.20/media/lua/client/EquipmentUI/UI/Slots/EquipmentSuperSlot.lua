@@ -96,6 +96,17 @@ function EquipmentSuperSlot:setItem(item, bodyLocation)
     end
 end
 
+function EquipmentSuperSlot:setOverrideItem(item, bodyLocation)
+    local slot = self.slotsByBodyLocation[bodyLocation]
+    if not slot then
+        slot = EquipmentSlot:new(0, 0, bodyLocation, self.bodySlotDisplay, self.inventoryPane, self.playerNum);
+        slot:initialise();
+        self.slotsByBodyLocation[bodyLocation] = slot;
+        self.slots[#self.slots + 1] = slot;
+    end
+    slot:setItem(item);
+end
+
 function EquipmentSuperSlot:clearItem()
     for _, slot in ipairs(self.slots) do
         slot:clearItem();
