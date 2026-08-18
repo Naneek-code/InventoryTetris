@@ -353,7 +353,8 @@ function TetrisWindowManager:closeAll()
 end
 
 function TetrisWindowManager:closeTopWindow()
-    local window = ItemGridWindow.getTopWindow()
+    -- FuX: A player window manager must never close another split-screen player's top popup.
+    local window = ItemGridWindow.getTopWindow(self.playerNum)
     if not window then return false end
     window:close()
     return true

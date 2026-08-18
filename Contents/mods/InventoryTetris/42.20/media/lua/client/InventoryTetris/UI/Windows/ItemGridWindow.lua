@@ -14,8 +14,15 @@ local ItemGridWindow = ISPanel:derive("ItemGridWindow");
 
 ItemGridWindow._globalInstances = {};
 
-function ItemGridWindow.getTopWindow()
-    return ItemGridWindow._globalInstances[#ItemGridWindow._globalInstances];
+function ItemGridWindow.getTopWindow(playerNum)
+    -- FuX: Split-screen popups share this global z-order, so callers may need the top window for one player only.
+    for i = #ItemGridWindow._globalInstances, 1, -1 do
+        local window = ItemGridWindow._globalInstances[i]
+        if playerNum == nil or window.playerNum == playerNum then
+            return window
+        end
+    end
+    return nil
 end
 
 function ItemGridWindow:new(x, y, inventory, inventoryPane, playerNum, windowManager)

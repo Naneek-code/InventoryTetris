@@ -468,7 +468,8 @@ function ItemGridUI:handleDropOnStackSameContainer(vanillaStack, targetStack)
     local fromStack, fromGrid = self.containerGrid:findStackByItem(frontItem)
 
     if not fromStack or not fromGrid then
-        self:sameContainerDifferentGrid(vanillaStack, targetStack.x, targetStack.y, nil)
+        -- FuX: Caught the stale method name here; overflow stack drops were calling a function that does not exist.
+        self:handleSameContainerDifferentGrid(vanillaStack, targetStack.x, targetStack.y, nil)
         return
     end
 
