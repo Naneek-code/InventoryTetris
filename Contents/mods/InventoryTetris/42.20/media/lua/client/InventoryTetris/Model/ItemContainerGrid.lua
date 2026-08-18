@@ -351,7 +351,7 @@ end
 
 ---@return boolean
 function ItemContainerGrid:isItemAllowed(item)
-    if self.inventory:getOnlyAcceptCategory() then
+    if not self.containerDefinition.overrideVanillaItemRules and self.inventory:getOnlyAcceptCategory() then
         if item:getCategory() ~= self.inventory:getOnlyAcceptCategory() then
             return false
         end

@@ -19,6 +19,26 @@ local function getOutermostContainer(container)
     return container:getContainingItem():getOutermostContainer()
 end
 
+local function withVanillaContainerItemRulesDisabled(container, callback)
+    local acceptItemFunction = container:getAcceptItemFunction()
+    local onlyAcceptCategory = container:getOnlyAcceptCategory()
+    if not acceptItemFunction and not onlyAcceptCategory then
+        return callback()
+    end
+
+    -- Smangsty: Keep vanilla transfer validation intact; only suspend rules explicitly replaced by Tetris data.
+    container:setAcceptItemFunction(nil)
+    container:setOnlyAcceptCategory(nil)
+    local ok, value = pcall(callback)
+    container:setAcceptItemFunction(acceptItemFunction)
+    container:setOnlyAcceptCategory(onlyAcceptCategory)
+
+    if not ok then
+        error(value)
+    end
+    return value
+end
+
 -- We REALLY need to be the last one to load here
 Events.OnGameBoot.Add(function()
     ISInventoryTransferAction.globalTetrisRules = false
@@ -121,17 +141,26 @@ Events.OnGameBoot.Add(function()
         end
 
         local valid;
+        local overrideVanillaItemRules = destDef and destDef.overrideVanillaItemRules == true
+
+        local function validateWithVanilla()
+            -- If we are moving a Moveable to anywhere but the floor, ensure it does NOT appear to be a Moveable
+            if destType ~= "floor" and instanceof(self.item, "Moveable") then
+                ModScope.withInstanceofExclusion(function ()
+                    valid = og_isValid(self)
+                end, "Moveable")
+            else
+                valid = og_isValid(self)
+            end
+        end
         
         -- Spoof container availability for whatever we are transferring to/from
         -- Might introduce some edge cases, but I'd rather whack-a-mole them than vice versa
         ModScope.withContainersAvailable(function ()
-                -- If we are moving a Moveable to anywhere but the floor, ensure it does NOT appear to be a Moveable
-                if destType ~= "floor" and instanceof(self.item, "Moveable") then
-                    ModScope.withInstanceofExclusion(function ()
-                        valid = og_isValid(self)
-                    end, "Moveable")
+                if overrideVanillaItemRules then
+                    withVanillaContainerItemRulesDisabled(self.destContainer, validateWithVanilla)
                 else
-                    valid = og_isValid(self)
+                    validateWithVanilla()
                 end
             end,
             {self.destContainer, self.srcContainer}

@@ -997,6 +997,10 @@ function TetrisDevTool.onItemRestriction(editWindow, index, state, offset)
     local category = TetrisItemCategory.list[index+offset];
 
     local def = editWindow.newContainerDefinition;
+    if editWindow.type == "CONTAINER" then
+        -- Smangsty: Once a dev explicitly edits acceptance, the exported Tetris rules are the authority.
+        def.overrideVanillaItemRules = true;
+    end
     if state then
         if not def.validCategories then
             def.validCategories = {};
