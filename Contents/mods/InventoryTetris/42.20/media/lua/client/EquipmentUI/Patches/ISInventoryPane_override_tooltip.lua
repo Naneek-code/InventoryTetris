@@ -71,7 +71,8 @@ Events.OnGameStart.Add(function()
                 self.toolRender.anchorBottomLeft = { x = self:getAbsoluteX() + self.column2, y = inventoryPage:getAbsoluteY() }
             end
             local equipmentPanel = GetPlayerEquipmentUi(self.player)
-            self.toolRender.followMouse = not self.doController and not equipmentPanel.controllerNode.isFocused
+            local equipmentHasControllerFocus = equipmentPanel and equipmentPanel.controllerNode and equipmentPanel.controllerNode.isFocused
+            self.toolRender.followMouse = not self.doController and not equipmentHasControllerFocus
             ---@diagnostic disable-next-line: need-check-nil
             self.toolRender.tooltip:setWeightOfStack(weightOfStack)
         elseif self.toolRender then

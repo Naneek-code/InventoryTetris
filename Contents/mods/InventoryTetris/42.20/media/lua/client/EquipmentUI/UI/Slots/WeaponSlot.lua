@@ -51,7 +51,7 @@ end
 function WeaponSlot:initialise()
     ISPanel.initialise(self);
 
-    table.insert(c.OnScaleChanged, function(scale)
+    c:addScaleChangedListener(self, function(scale)
        self:applyScale(scale)
     end)
     self:applyScale(c.SCALE)

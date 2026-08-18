@@ -47,7 +47,7 @@ function HotbarSlot:initialise()
         :injectControllerNode(self)
         :setJoypadDownHandler(self.controllerNodeOnJoypadDown)
 
-    table.insert(Settings.OnScaleChanged, function(scale)
+    Settings:addScaleChangedListener(self, function(scale)
         self:setWidth(Settings.SUPER_SLOT_SIZE)
         self:setHeight(Settings.SUPER_SLOT_SIZE)
     end);

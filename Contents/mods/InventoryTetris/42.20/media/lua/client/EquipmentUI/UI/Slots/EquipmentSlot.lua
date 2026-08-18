@@ -47,7 +47,7 @@ end
 function EquipmentSlot:initialise()
     ISPanel.initialise(self);
 
-    table.insert(Settings.OnScaleChanged, function(scale)
+    Settings:addScaleChangedListener(self, function(scale)
         self:setWidth(Settings.SLOT_SIZE)
         self:setHeight(Settings.SLOT_SIZE)
     end);

@@ -34,14 +34,26 @@ function ISInventoryPage:createChildren()
 
         equipmentUiPanelsByPlayerNum[playerNum] = self.equipmentUiPanel
 
+        local dragRenderer = nil
         if not SETTINGS.InventoryTetris then
-            local dragRenderer = EquipmentDragItemRenderer:new(self.inventoryPane, playerNum)
+            dragRenderer = EquipmentDragItemRenderer:new(self.inventoryPane, playerNum)
             dragRenderer:initialise()
             dragRenderer:addToUIManager()
+        end
 
-            local og_removeFromUIManager = self.removeFromUIManager
-            self.removeFromUIManager = function(self)
-                og_removeFromUIManager(self)
+        local og_removeFromUIManager = self.removeFromUIManager
+        self.removeFromUIManager = function(page)
+            local equipmentPanel = page.equipmentUiPanel
+            if equipmentPanel then
+                -- Smangsty: Rebuilt inventory pages should not leave immortal Equipment UI callbacks behind.
+                SETTINGS:removeScaleChangedListeners(equipmentPanel)
+                if equipmentUiPanelsByPlayerNum[playerNum] == equipmentPanel then
+                    equipmentUiPanelsByPlayerNum[playerNum] = nil
+                end
+            end
+
+            og_removeFromUIManager(page)
+            if dragRenderer then
                 dragRenderer:removeFromUIManager()
             end
         end

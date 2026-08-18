@@ -61,7 +61,7 @@ end
 function EquipmentSuperSlot:initialise()
     ISPanel.initialise(self);
 
-    table.insert(Settings.OnScaleChanged, function(scale)
+    Settings:addScaleChangedListener(self, function(scale)
         self:setX(scale * self.slotDefinition.position.x + Settings.EQUIPMENT_UI_X_OFFSET);
         self:setY(scale * self.slotDefinition.position.y + Settings.EQUIPMENT_UI_Y_OFFSET);
         self:setWidth(Settings.SUPER_SLOT_SIZE + Settings.SUPER_SLOT_SUB_ITEM_WIDTH);

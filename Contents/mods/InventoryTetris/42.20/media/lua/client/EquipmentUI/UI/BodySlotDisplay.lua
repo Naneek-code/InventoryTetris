@@ -64,7 +64,7 @@ function BodySlotDisplay:createChildren()
     self:createEquipmentSlots();
     self:createWeaponSlots();
 
-    table.insert(SETTINGS.OnScaleChanged, function()
+    SETTINGS:addScaleChangedListener(self, function()
         local hotbar = getPlayerHotbar(self.playerNum)
         self:updateDynamicEquipmentSlots()
         self:updateHotbarSlots(hotbar)
