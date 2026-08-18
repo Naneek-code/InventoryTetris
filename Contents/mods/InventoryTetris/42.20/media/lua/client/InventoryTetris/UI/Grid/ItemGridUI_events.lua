@@ -512,12 +512,30 @@ function ItemGridUI:openSplitStack(vanillaStack, targetX, targetY)
     local window = ItemGridStackSplitWindow:new(self.grid, vanillaStack, targetX, targetY, self:_isDragItemRotated(), self.playerNum)
     window:initialise()
     window:addToUIManager()
-    window:setX(getMouseX() - window:getWidth() / 2)
-    window:setY(getMouseY() - window:getHeight() / 2)
 
     if vanillaStack.count-1 <= 2 then
         window:onOK()
+        return
     end
+    local isController = self.controllerNode and self.controllerNode.isFocused
+    if isController then
+        -- FuX: Controller split-stack dialogs belong to the selected cell and the owning player's viewport, not the mouse.
+        local screenX, screenY = self:gridPositionToScreenPosition(targetX, targetY)
+        local screenLeft = getPlayerScreenLeft(self.playerNum)
+        local screenTop = getPlayerScreenTop(self.playerNum)
+        local screenRight = screenLeft + getPlayerScreenWidth(self.playerNum)
+        local screenBottom = screenTop + getPlayerScreenHeight(self.playerNum)
+
+        window:setX(math.max(screenLeft, math.min(screenX, screenRight - window:getWidth())))
+        window:setY(math.max(screenTop, math.min(screenY - window:getHeight(), screenBottom - window:getHeight())))
+        window.controllerReturnTarget = self
+        setJoypadFocus(self.playerNum, window)
+    else
+        window:setX(getMouseX() - window:getWidth() / 2)
+        window:setY(getMouseY() - window:getHeight() / 2)
+    end
+
+    return window
 end
 
 
@@ -881,6 +899,15 @@ end
 
 function ItemGridUI:controllerNodeOnJoypadDown(button)
     if ControllerDragAndDrop.isDragging(self.playerNum) then
+        -- FuX: X exposes Split Stack to controller users while preserving the existing drag controls.
+        if button == Joypad.XButton then
+            local vanillaStack = ControllerDragAndDrop.getDraggedStack(self.playerNum)
+            if vanillaStack then
+                self:openSplitStack(vanillaStack, self.selectedX, self.selectedY)
+            end
+            return true
+        end
+
         -- Rotate item
         if button == Joypad.AButton then
             ControllerDragAndDrop.rotateDraggedItem(self.playerNum)
@@ -910,6 +937,12 @@ function ItemGridUI:controllerNodeOnJoypadDown(button)
         end
 
     else
+        -- FuX: Restore vanilla Y behavior once no Tetris drag is active: leave inventory focus entirely.
+        if button == Joypad.YButton then
+            setJoypadFocus(self.playerNum, nil)
+            return true
+        end
+
         -- Open item context menu
         if button == Joypad.AButton then
             local stack = self.grid:getStack(self.selectedX, self.selectedY, self.playerNum)

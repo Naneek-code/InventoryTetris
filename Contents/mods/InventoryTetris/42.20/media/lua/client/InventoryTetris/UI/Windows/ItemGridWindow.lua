@@ -187,7 +187,8 @@ function ItemGridWindow:createChildren()
         end)
         :setJoypadDownHandler(function(self, button)
             if button == Joypad.YButton then
-                self:close()
+                -- FuX: Match vanilla 42.20.3 here: Y leaves inventory focus instead of requiring one press per popup.
+                setJoypadFocus(self.playerNum, nil)
                 return true
             end
 

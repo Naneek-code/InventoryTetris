@@ -1,5 +1,6 @@
 require("ISUI/ISCollapsableWindow")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
+local ControllerNode = require("InventoryTetris/UI/ControllerNode")
 local OPT = require("InventoryTetris/Settings")
 
 local ItemGridStackSplitWindow = ISCollapsableWindow:derive("ItemGridStackSplitWindow");
@@ -68,6 +69,53 @@ function ItemGridStackSplitWindow:createChildren()
     self.ok:instantiate()
     self.ok.font = UIFont.Medium
     self:addChild(self.ok)
+
+    -- FuX: Split Stack was mouse-only; give the dialog a native controller surface instead of patching it from another mod.
+    ControllerNode
+        :injectControllerNode(self)
+        :doSimpleFocusHighlight()
+        :setJoypadDirHandler(self.controllerNodeOnJoypadDir)
+        :setJoypadDownHandler(self.controllerNodeOnJoypadDown)
+end
+
+function ItemGridStackSplitWindow:controllerNodeOnJoypadDown(button)
+    if button == Joypad.AButton then
+        self:onOK()
+        if self.controllerReturnTarget then
+            setJoypadFocus(self.playerNum, self.controllerReturnTarget)
+        end
+        return true
+    end
+
+    if button == Joypad.BButton or button == Joypad.YButton then
+        self:close()
+        if self.controllerReturnTarget then
+            setJoypadFocus(self.playerNum, self.controllerReturnTarget)
+        end
+        return true
+    end
+
+    return false
+end
+
+function ItemGridStackSplitWindow:controllerNodeOnJoypadDir(dx, dy)
+    if not self.splitSlider then return false end
+
+    local delta = 0
+    if dx == -1 then
+        delta = -1
+    elseif dx == 1 then
+        delta = 1
+    elseif dy == -1 then
+        delta = 10
+    elseif dy == 1 then
+        delta = -10
+    end
+    if delta == 0 then return false end
+
+    local value = math.max(1, math.min(self.max, self.splitSlider:getCurrentValue() + delta))
+    self.splitSlider:setCurrentValue(value)
+    return true
 end
 
 function ItemGridStackSplitWindow:onSplitSliderChange()
