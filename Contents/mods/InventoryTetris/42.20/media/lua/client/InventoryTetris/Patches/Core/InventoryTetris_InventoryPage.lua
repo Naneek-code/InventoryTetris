@@ -102,7 +102,10 @@ Events.OnGameBoot.Add(function()
 
 	function ISInventoryPage:updateLootButtonsForTetrisSearch()
 		local sisterPage = self:tetrisGetSisterPage()
-        local needsSearch = self.needSearch or (sisterPage and sisterPage.needSearch)
+        -- Smangsty: Java visibility setters require real booleans, including during MP UI teardown.
+        local selfNeedsSearch = self.needSearch == true
+        local sisterNeedsSearch = sisterPage ~= nil and sisterPage.needSearch == true
+        local needsSearch = selfNeedsSearch or sisterNeedsSearch
         if self.onCharacter then
 			--transferAll button is currently disabled in base game
 			--self.transferAll:setVisible(not needsSearch)
@@ -123,7 +126,9 @@ Events.OnGameBoot.Add(function()
 			end
 		end
 
-		self.tetrisSearchButton:setVisible(needsSearch and self.needSearch)
+        if self.tetrisSearchButton then
+            self.tetrisSearchButton:setVisible(selfNeedsSearch)
+        end
 	end
 
 	local og_prerender = ISInventoryPage.prerender
