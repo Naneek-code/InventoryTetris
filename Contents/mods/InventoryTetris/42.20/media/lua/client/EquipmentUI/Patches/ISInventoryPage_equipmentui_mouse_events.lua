@@ -4,13 +4,17 @@ function ISInventoryPage:isMouseOverEquipmentUi()
     if(self.equipmentUiPanel and self.equipmentUiPanel.playerNum == 0) then
         local mouseX = getMouseX()
         local mouseY = getMouseY()
-        if mouseX >= self.equipmentUiPanel:getAbsoluteX() and mouseX <= self.equipmentUiPanel:getAbsoluteX() + self.equipmentUiPanel:getWidth() and
+        if self.equipmentUiPanel:isVisible() and
+            mouseX >= self.equipmentUiPanel:getAbsoluteX() and mouseX <= self.equipmentUiPanel:getAbsoluteX() + self.equipmentUiPanel:getWidth() and
             mouseY >= self.equipmentUiPanel:getAbsoluteY() and mouseY <= self.equipmentUiPanel:getAbsoluteY() + self.equipmentUiPanel:getHeight() then
             return true
         end
 
-        if mouseX >= self.equipmentUiPanel.toggleElement:getAbsoluteX() and mouseX <= self.equipmentUiPanel.toggleElement:getAbsoluteX() + self.equipmentUiPanel.toggleElement:getWidth() and
-            mouseY >= self.equipmentUiPanel.toggleElement:getAbsoluteY() and mouseY <= self.equipmentUiPanel.toggleElement:getAbsoluteY() + self.equipmentUiPanel.toggleElement:getHeight() then
+        local toggle = self.equipmentUiPanel.toggleElement
+        -- Smangsty: Hidden side panels must not steal hover ownership from the inventory underneath them.
+        if toggle and toggle:isVisible() and
+            mouseX >= toggle:getAbsoluteX() and mouseX <= toggle:getAbsoluteX() + toggle:getWidth() and
+            mouseY >= toggle:getAbsoluteY() and mouseY <= toggle:getAbsoluteY() + toggle:getHeight() then
             return true
         end
     end

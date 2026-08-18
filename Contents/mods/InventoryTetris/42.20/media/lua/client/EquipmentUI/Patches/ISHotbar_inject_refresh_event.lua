@@ -6,8 +6,10 @@ Events.OnGameBoot.Add(function()
 
     local og_refresh = ISHotbar.refresh
     function ISHotbar:refresh()
+        local oldAvailableSlots = self.availableSlot
         og_refresh(self)
-        if self.notloc_onRefresh then
+        -- Smangsty: Vanilla may call refresh without changing slots; don't rebuild Equipment UI for a no-op.
+        if self.notloc_onRefresh and self.availableSlot ~= oldAvailableSlots then
             self.notloc_onRefresh(self)
         end
     end

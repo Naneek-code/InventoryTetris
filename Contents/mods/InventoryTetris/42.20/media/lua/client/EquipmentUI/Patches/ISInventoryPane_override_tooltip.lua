@@ -17,8 +17,9 @@ Events.OnGameStart.Add(function()
 
         local superSlotPopup = equipmentUi and equipmentUi.popup
 
-        local equipmentUiHasFocus = inventoryPage:isMouseOverEquipmentUi() or equipmentUi.controllerNode.isFocused
-        local superSlotPopupHasFocus = superSlotPopup:isMouseOver() or superSlotPopup.controllerNode.isFocused
+        -- Smangsty: Invisible Equipment UI surfaces must not steal tooltip ownership from the inventory.
+        local equipmentUiHasFocus = equipmentUi:isVisible() and (inventoryPage:isMouseOverEquipmentUi() or equipmentUi.controllerNode.isFocused)
+        local superSlotPopupHasFocus = superSlotPopup and superSlotPopup:isVisible() and (superSlotPopup:isMouseOver() or superSlotPopup.controllerNode.isFocused)
 
         if equipmentUiHasFocus or superSlotPopupHasFocus then
             return equipmentUi:updateTooltip()

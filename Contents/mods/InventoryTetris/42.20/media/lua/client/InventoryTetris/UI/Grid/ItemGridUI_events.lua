@@ -370,8 +370,8 @@ function ItemGridUI:handleSameContainerDifferentGrid(vanillaStack, gridX, gridY,
 end
 
 function ItemGridUI:_isDragItemRotated()
-    local isJoyPad = JoypadState.players[self.playerNum+1] ~= nil
-    return isJoyPad and ControllerDragAndDrop.isDraggedItemRotated(self.playerNum) or DragAndDrop.isDraggedItemRotated()
+    local isControllerDrag = ControllerDragAndDrop.getDraggedItem(self.playerNum) ~= nil
+    return isControllerDrag and ControllerDragAndDrop.isDraggedItemRotated(self.playerNum) or DragAndDrop.isDraggedItemRotated()
 end
 
 function ItemGridUI:canPutIn(item)

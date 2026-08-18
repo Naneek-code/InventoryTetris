@@ -381,7 +381,8 @@ Events.OnGameBoot.Add(function()
             return -- in the main menu
         end
 
-        local isController = JoypadState.players[self.player+1] ~= nil
+        -- Smangsty: A bound controller is not the same thing as this pane currently being controller-driven.
+        local isController = self.doController == true
 
         if not isController and self.parent:isMouseOverEquipmentUi() then
             return GetPlayerEquipmentUi(self.player):updateTooltip()

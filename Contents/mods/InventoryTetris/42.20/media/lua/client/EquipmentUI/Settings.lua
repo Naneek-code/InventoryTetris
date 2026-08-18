@@ -100,9 +100,22 @@ EQUIPMENT_UI_SETTINGS:applyHideEquippedItems(false)
 
 -- TOGGLE UI CONTROLLER BIND
 local DEFAULT_CONTROLLER_BIND = isModPresent("WookieeGamepadSupport") and 9 or 7
+local CONTROLLER_BINDS = {
+    Joypad.AButton,
+    Joypad.BButton,
+    Joypad.XButton,
+    Joypad.YButton,
+    Joypad.LBumper,
+    Joypad.RBumper,
+    Joypad.Back,
+    Joypad.Start,
+    Joypad.LStickButton,
+    Joypad.RStickButton,
+}
 
 EQUIPMENT_UI_SETTINGS.applyToggleUiControllerBind = function(self, bindIndex)
-    self.TOGGLE_UI_CONTROLLER_BIND = bindIndex - 1 
+    -- Smangsty: B42.20.3 controller callbacks use JoypadButton values, not the old raw 0-9 indexes.
+    self.TOGGLE_UI_CONTROLLER_BIND = CONTROLLER_BINDS[bindIndex] or Joypad.Back
 end
 
 EQUIPMENT_UI_SETTINGS:applyToggleUiControllerBind(DEFAULT_CONTROLLER_BIND)
