@@ -689,7 +689,9 @@ function ItemContainerGrid:_getPositionedItems()
 end
 
 function ItemContainerGrid:_isItemValid(item)
-    return not item:isHidden() and (not self.isPlayerInventory or (not item:isEquipped() and not self:_isItemInHotbar(item)))
+    -- Smangsty: Hand ownership is authoritative even when special B42 items report isEquipped() false.
+    local isHeld = self.isPlayerInventory and self.player and self.player:isHandItem(item)
+    return not item:isHidden() and (not self.isPlayerInventory or (not item:isEquipped() and not isHeld and not self:_isItemInHotbar(item)))
 end
 
 function ItemContainerGrid:_isItemInHotbar(item)

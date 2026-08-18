@@ -28,7 +28,9 @@ function GridAutoDropSystem._processItems(playerNum, items)
     for _, item in ipairs(items) do
         local hotbar = getPlayerHotbar(playerNum)
         local inHotbar = hotbar and hotbar:isInHotbar(item)
-        if not item:isEquipped() and not inHotbar and not isInsideKeyRing(item) then
+        local isHeld = playerObj:isHandItem(item)
+        -- Smangsty: If PZ says the player is holding it, the floor can wait its turn.
+        if not item:isEquipped() and not isHeld and not inHotbar and not isInsideKeyRing(item) then
             local addedToContainer = false
 
             local currentContainer = item:getContainer()
