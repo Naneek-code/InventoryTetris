@@ -187,6 +187,7 @@ function ItemGrid:removeItem(item)
 end
 
 function ItemGrid:moveStack(stack, x, y, isRotated)
+    if not ItemStack.getFrontItem(stack, self.inventory) then return false end
     local item = ItemStack.getFrontItem(stack, self.inventory)
 
     local w, h = TetrisItemData.getItemSize(item, isRotated)
@@ -267,6 +268,7 @@ function ItemGrid:_insertStack(xPos, yPos, item, isRotated)
 end
 
 function ItemGrid:_tryInsertStack_premade(stack, x, y, isRotated)
+    if not ItemStack.getFrontItem(stack, self.inventory) then return false end
     local item = ItemStack.getFrontItem(stack, self.inventory)
     local w, h = TetrisItemData.getItemSize(item, isRotated)
     if not self:_isAreaFree(x, y, w, h, {[stack] = true}) then
@@ -385,6 +387,7 @@ function ItemGrid:canItemBeStacked(item, xPos, yPos)
 end
 
 function ItemGrid:willStackOverlapSelf(stack, newX, newY, isRotated)
+    if not ItemStack.getFrontItem(stack, self.inventory) then return true end
     local w, h = TetrisItemData.getItemSize(ItemStack.getFrontItem(stack, self.inventory), isRotated)
     for x=newX, newX+w-1 do
         for y=newY, newY+h-1 do

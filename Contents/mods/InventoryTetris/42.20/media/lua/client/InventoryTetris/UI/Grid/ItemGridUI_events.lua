@@ -196,7 +196,8 @@ end
 
 function ItemGridUI.covertItemAndLocalMouseToGridPosition(x, y, item, isRotated)
     if item then
-        local w, h = TetrisItemData.getItemSize(item, isRotated)
+        local w, h = TetrisItemData.tryGetItemSize(item, isRotated)
+        if not w then return nil, nil end
         x = x - OPT.CELL_SIZE * w / 2 + OPT.CELL_SIZE / 2
         y = y - OPT.CELL_SIZE * h / 2 + OPT.CELL_SIZE / 2
     end
@@ -286,7 +287,7 @@ function ItemGridUI:handleDragAndDrop_single(vanillaStack, mouseX, mouseY)
         local gridX, gridY = ItemGridUI.covertItemAndLocalMouseToGridPosition(mouseX, mouseY, dragItem, DragAndDrop.isDraggedItemRotated())
         local hoveredX, hoveredY = ItemGridUI.covertItemAndLocalMouseToGridPosition(mouseX, mouseY)
         local hoveredStack = self.grid:getStack(hoveredX, hoveredY, self.playerNum)
-        self:handleDragAndDrop_generic(vanillaStack, gridX, gridY, hoveredStack)
+        if gridX ~= nil and gridY ~= nil then self:handleDragAndDrop_generic(vanillaStack, gridX, gridY, hoveredStack) end
     end
 end
 
@@ -800,7 +801,8 @@ function ItemGridUI:controllerNodeOnJoypadDir(dx, dy, joypadData)
     local stack = self.grid:getStack(xSelected, ySelected, self.playerNum)
     if stack and not isDragging then
         local item = ItemStack.getFrontItem(stack, self.grid.inventory)
-        w, h = TetrisItemData.getItemSize(item, stack.isRotated)
+        local itemW, itemH = TetrisItemData.tryGetItemSize(item, stack.isRotated)
+        w, h = itemW or 1, itemH or 1
         originX = stack.x
         originY = stack.y
     end

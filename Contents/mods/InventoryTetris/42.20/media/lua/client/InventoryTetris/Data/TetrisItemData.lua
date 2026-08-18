@@ -53,41 +53,19 @@ function TetrisItemData.getItemSize(item, isRotated)
 end
 
 function TetrisItemData.tryGetItemSize(item, isRotated)
-    local ok, width, height = pcall(TetrisItemData.getItemSize, item, isRotated)
-    if not ok or type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
+    local data = TetrisItemData._getItemData(item)
+    if type(data) ~= "table" then
         return nil, nil
     end
-    return width, height
-end
 
-function TetrisItemData.tryGetItemSize(item, isRotated)
-    local ok, width, height = pcall(TetrisItemData.getItemSize, item, isRotated)
-    if not ok or type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
+    local width = data.width
+    local height = data.height
+    if type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
         return nil, nil
     end
-    return width, height
-end
 
-function TetrisItemData.tryGetItemSize(item, isRotated)
-    local ok, width, height = pcall(TetrisItemData.getItemSize, item, isRotated)
-    if not ok or type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
-        return nil, nil
-    end
-    return width, height
-end
-
-function TetrisItemData.tryGetItemSize(item, isRotated)
-    local ok, width, height = pcall(TetrisItemData.getItemSize, item, isRotated)
-    if not ok or type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
-        return nil, nil
-    end
-    return width, height
-end
-
-function TetrisItemData.tryGetItemSize(item, isRotated)
-    local ok, width, height = pcall(TetrisItemData.getItemSize, item, isRotated)
-    if not ok or type(width) ~= "number" or type(height) ~= "number" or width < 1 or height < 1 then
-        return nil, nil
+    if isRotated then
+        return height, width
     end
     return width, height
 end
