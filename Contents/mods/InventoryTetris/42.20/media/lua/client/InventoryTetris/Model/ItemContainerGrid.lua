@@ -351,7 +351,7 @@ end
 
 ---@return boolean
 function ItemContainerGrid:isItemAllowed(item)
-    if self.inventory:getOnlyAcceptCategory() then
+    if not self.containerDefinition.overrideVanillaItemRules and self.inventory:getOnlyAcceptCategory() then
         if item:getCategory() ~= self.inventory:getOnlyAcceptCategory() then
             return false
         end
@@ -689,7 +689,9 @@ function ItemContainerGrid:_getPositionedItems()
 end
 
 function ItemContainerGrid:_isItemValid(item)
-    return not item:isHidden() and (not self.isPlayerInventory or (not item:isEquipped() and not self:_isItemInHotbar(item)))
+    -- Smangsty: Hand ownership is authoritative even when special B42 items report isEquipped() false.
+    local isHeld = self.isPlayerInventory and self.player and self.player:isHandItem(item)
+    return not item:isHidden() and (not self.isPlayerInventory or (not item:isEquipped() and not isHeld and not self:_isItemInHotbar(item)))
 end
 
 function ItemContainerGrid:_isItemInHotbar(item)
@@ -763,11 +765,20 @@ function ItemContainerGrid:removeOnSecondaryGridsRemoved(obj)
     self._onSecondaryGridsRemoved[obj] = nil
 end
 
+local function snapshotSecondaryGridListeners(listeners)
+    local snapshot = {}
+    for obj, callback in pairs(listeners) do
+        snapshot[#snapshot + 1] = { obj = obj, callback = callback }
+    end
+    return snapshot
+end
+
 function ItemContainerGrid:addSecondaryGrid(secondaryTarget)
     local grids = self:createSecondaryGrids(secondaryTarget)
     self.secondaryGrids[secondaryTarget] = grids
-    for obj, callback in pairs(self._onSecondaryGridsAdded) do
-        callback(obj, secondaryTarget, grids)
+    -- Smangsty: Listeners may unregister while handling pocket changes; dispatch a stable snapshot.
+    for _, listener in ipairs(snapshotSecondaryGridListeners(self._onSecondaryGridsAdded)) do
+        listener.callback(listener.obj, secondaryTarget, grids)
     end
     return grids
 end
@@ -790,8 +801,8 @@ function ItemContainerGrid:removeSecondaryGrid(secondaryTarget, deleteModData)
     end
 
     self.secondaryGrids[secondaryTarget] = nil
-    for obj, callback in pairs(self._onSecondaryGridsRemoved) do
-        callback(obj, secondaryTarget)
+    for _, listener in ipairs(snapshotSecondaryGridListeners(self._onSecondaryGridsRemoved)) do
+        listener.callback(listener.obj, secondaryTarget)
     end
 
     return stacks

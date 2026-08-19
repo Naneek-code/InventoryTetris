@@ -149,7 +149,10 @@ function ItemGridUI:cancelDragDropItem()
         if not ISUIElement.isMouseOverAnyUI() then
             for itemId, _ in pairs(gridStack.itemIDs) do
                 local itm = self.grid.inventory:getItemWithID(itemId)
-                ISInventoryPaneContextMenu.dropItem(itm, self.playerNum)
+                -- Smangsty: Grid stacks can briefly outlive their items during MP sync; stale IDs are not items.
+                if itm then
+                    ISInventoryPaneContextMenu.dropItem(itm, self.playerNum)
+                end
             end
         end
     end
@@ -367,8 +370,8 @@ function ItemGridUI:handleSameContainerDifferentGrid(vanillaStack, gridX, gridY,
 end
 
 function ItemGridUI:_isDragItemRotated()
-    local isJoyPad = JoypadState.players[self.playerNum+1] ~= nil
-    return isJoyPad and ControllerDragAndDrop.isDraggedItemRotated(self.playerNum) or DragAndDrop.isDraggedItemRotated()
+    local isControllerDrag = ControllerDragAndDrop.getDraggedItem(self.playerNum) ~= nil
+    return isControllerDrag and ControllerDragAndDrop.isDraggedItemRotated(self.playerNum) or DragAndDrop.isDraggedItemRotated()
 end
 
 function ItemGridUI:canPutIn(item)
@@ -465,7 +468,8 @@ function ItemGridUI:handleDropOnStackSameContainer(vanillaStack, targetStack)
     local fromStack, fromGrid = self.containerGrid:findStackByItem(frontItem)
 
     if not fromStack or not fromGrid then
-        self:sameContainerDifferentGrid(vanillaStack, targetStack.x, targetStack.y, nil)
+        -- FuX: Caught the stale method name here; overflow stack drops were calling a function that does not exist.
+        self:handleSameContainerDifferentGrid(vanillaStack, targetStack.x, targetStack.y, nil)
         return
     end
 
@@ -508,12 +512,30 @@ function ItemGridUI:openSplitStack(vanillaStack, targetX, targetY)
     local window = ItemGridStackSplitWindow:new(self.grid, vanillaStack, targetX, targetY, self:_isDragItemRotated(), self.playerNum)
     window:initialise()
     window:addToUIManager()
-    window:setX(getMouseX() - window:getWidth() / 2)
-    window:setY(getMouseY() - window:getHeight() / 2)
 
     if vanillaStack.count-1 <= 2 then
         window:onOK()
+        return
     end
+    local isController = self.controllerNode and self.controllerNode.isFocused
+    if isController then
+        -- FuX: Controller split-stack dialogs belong to the selected cell and the owning player's viewport, not the mouse.
+        local screenX, screenY = self:gridPositionToScreenPosition(targetX, targetY)
+        local screenLeft = getPlayerScreenLeft(self.playerNum)
+        local screenTop = getPlayerScreenTop(self.playerNum)
+        local screenRight = screenLeft + getPlayerScreenWidth(self.playerNum)
+        local screenBottom = screenTop + getPlayerScreenHeight(self.playerNum)
+
+        window:setX(math.max(screenLeft, math.min(screenX, screenRight - window:getWidth())))
+        window:setY(math.max(screenTop, math.min(screenY - window:getHeight(), screenBottom - window:getHeight())))
+        window.controllerReturnTarget = self
+        setJoypadFocus(self.playerNum, window)
+    else
+        window:setX(getMouseX() - window:getWidth() / 2)
+        window:setY(getMouseY() - window:getHeight() / 2)
+    end
+
+    return window
 end
 
 
@@ -596,9 +618,13 @@ function ItemGridUI:quickMoveItemToContainer(gridStack, targetContainers)
 
     for itemId, _ in pairs(gridStack.itemIDs) do
         local item = self.grid.inventory:getItemWithID(itemId)
-        local transfer = ISInventoryTransferAction:new(playerObj, item, item:getContainer(), targetContainer)
-        transfer.isRotated = gridStack.isRotated
-        ISTimedActionQueue.add(transfer)
+        -- Smangsty: MP can invalidate one cached stack entry before the grid catches up; skip ghosts safely.
+        local sourceContainer = item and item:getContainer() or nil
+        if item and sourceContainer then
+            local transfer = ISInventoryTransferAction:new(playerObj, item, sourceContainer, targetContainer)
+            transfer.isRotated = gridStack.isRotated
+            ISTimedActionQueue.add(transfer)
+        end
     end
 end
 
@@ -740,7 +766,7 @@ function ItemGridUI.openItemContextMenu(uiContext, x, y, item, inventoryPane, pl
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, ItemStack.createVanillaStackListFromItem(item, inventoryPane), uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu
@@ -755,7 +781,7 @@ function ItemGridUI.openStackContextMenu(uiContext, x, y, gridStack, inventory, 
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, ItemStack.createVanillaStackListFromItems(items, inventoryPane), uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu
@@ -776,7 +802,7 @@ function ItemGridUI.openContextMenuForVanillaStacks(uiContext, x, y, vanillaStac
     local isInInv = container and container:isInCharacterInventory(getSpecificPlayer(playerNum))
     local menu = ISInventoryPaneContextMenu.createMenu(playerNum, isInInv, vanillaStacks, uiContext:getAbsoluteX()+x, uiContext:getAbsoluteY()+y)
 
-    if menu and menu.numOptions > 1 and JoypadState.players[playerNum+1] then
+    if menu and menu.numOptions > 1 and uiContext.controllerNode and uiContext.controllerNode.isFocused then
         ControllerNode:focusContextMenu(playerNum, menu)
     end
     return menu
@@ -873,6 +899,15 @@ end
 
 function ItemGridUI:controllerNodeOnJoypadDown(button)
     if ControllerDragAndDrop.isDragging(self.playerNum) then
+        -- FuX: X exposes Split Stack to controller users while preserving the existing drag controls.
+        if button == Joypad.XButton then
+            local vanillaStack = ControllerDragAndDrop.getDraggedStack(self.playerNum)
+            if vanillaStack then
+                self:openSplitStack(vanillaStack, self.selectedX, self.selectedY)
+            end
+            return true
+        end
+
         -- Rotate item
         if button == Joypad.AButton then
             ControllerDragAndDrop.rotateDraggedItem(self.playerNum)
@@ -902,6 +937,12 @@ function ItemGridUI:controllerNodeOnJoypadDown(button)
         end
 
     else
+        -- FuX: Restore vanilla Y behavior once no Tetris drag is active: leave inventory focus entirely.
+        if button == Joypad.YButton then
+            ControllerNode.exitInventory(self.playerNum)
+            return true
+        end
+
         -- Open item context menu
         if button == Joypad.AButton then
             local stack = self.grid:getStack(self.selectedX, self.selectedY, self.playerNum)

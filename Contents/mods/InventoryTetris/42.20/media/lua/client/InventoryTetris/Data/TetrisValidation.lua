@@ -11,7 +11,9 @@ local TetrisValidation = {}
 ---@return boolean
 function TetrisValidation.validateInsert(container, containerDef, item)
     local itemInContainer = item:getContainer() == container
-    if not itemInContainer and not container:isItemAllowed(item) then
+    local overridesVanillaRules = containerDef and containerDef.overrideVanillaItemRules == true
+    -- Smangsty: Explicit Tetris container restrictions replace vanilla acceptance callbacks, not stack on top of them.
+    if not itemInContainer and not overridesVanillaRules and not container:isItemAllowed(item) then
         return false
     end
 

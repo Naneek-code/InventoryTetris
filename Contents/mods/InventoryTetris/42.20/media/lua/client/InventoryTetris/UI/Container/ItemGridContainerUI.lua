@@ -730,7 +730,7 @@ function ItemGridContainerUI:_onSecondaryGridsAdded(target, grids)
 
     self:applyScales(OPT.SCALE, OPT.CONTAINER_INFO_SCALE)
     if self.isInitialized then
-        self.inventoryPane:refreshItemGrids(true)
+        self.inventoryPane:relayoutItemGrids()
     end
 end
 
@@ -746,7 +746,7 @@ function ItemGridContainerUI:_onSecondaryGridsRemoved(target)
 
     self:applyScales(OPT.SCALE, OPT.CONTAINER_INFO_SCALE)
     if self.isInitialized then
-        self.inventoryPane:refreshItemGrids(true)
+        self.inventoryPane:relayoutItemGrids()
     end
 end
 

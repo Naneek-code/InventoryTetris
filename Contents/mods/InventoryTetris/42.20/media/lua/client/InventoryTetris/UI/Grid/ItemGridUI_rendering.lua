@@ -348,8 +348,9 @@ end
 local instructionBuffer = table.newarray()
 function ItemGridUI:renderStackLoop(inventory, stacks, alphaMult, searchSession)
     local CELL_SIZE = OPT.CELL_SIZE
-    local isJoypad = JoypadState.players[self.playerNum+1]
-    local draggedItem = isJoypad and ControllerDragAndDrop.getDraggedItem(self.playerNum) or DragAndDrop.getDraggedItem()
+    -- Smangsty: Pick drag state from the active drag source, not merely from whether a controller is assigned.
+    local controllerDraggedItem = ControllerDragAndDrop.getDraggedItem(self.playerNum)
+    local draggedItem = controllerDraggedItem or DragAndDrop.getDraggedItem()
     local playerObj = self.playerObj
 
     local outgoingQueueData = self.itemTransferData:getOutgoingActions(inventory)
@@ -449,12 +450,13 @@ function ItemGridUI:renderStackLoop(inventory, stacks, alphaMult, searchSession)
 end
 
 function ItemGridUI:renderDragItemPreview()
-    local isJoyPad = JoypadState.players[self.playerNum+1]
+    local controllerDraggedItem = ControllerDragAndDrop.getDraggedItem(self.playerNum)
+    local isJoyPad = controllerDraggedItem ~= nil
     local noMouse = not isJoyPad and not self:isMouseOver()
     local noController = isJoyPad and not self.controllerNode.isFocused
     local sameOwner = DragAndDrop.isDragOwner(self)
 
-    local item = isJoyPad and ControllerDragAndDrop.getDraggedItem(self.playerNum) or DragAndDrop.getDraggedItem()
+    local item = controllerDraggedItem or DragAndDrop.getDraggedItem()
     if not item or noMouse or noController then
         return
     end

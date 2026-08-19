@@ -53,7 +53,7 @@ function EquipmentPanel:createChildren()
         self:addChild(self.toggleHideItemsButtons);
 
         -- This callback fires when any setting changes, so this works
-        table.insert(Settings.OnScaleChanged, function(_scale)
+        Settings:addScaleChangedListener(self, function(_scale)
             self.toggleHideItemsButtons:setImage(Settings.HIDE_EQUIPPED_ITEMS and ITEMS_HIDDEN_TEX or ITEMS_VISIBLE_TEX);
         end)
     end

@@ -254,6 +254,12 @@ function GridOverflowRenderer:controllerNodeOnJoypadDown(button)
         end
 
     else
+        -- FuX: Overflow focus should preserve vanilla Y-to-exit behavior just like the main grid.
+        if button == Joypad.YButton then
+            ControllerNode.exitInventory(self.playerNum)
+            return true
+        end
+
         -- Open item context menu
         if button == Joypad.AButton then
             local stack = self.containerGrid.overflow[self.controllerSelection]

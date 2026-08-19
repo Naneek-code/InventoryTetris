@@ -61,7 +61,7 @@ end
 function EquipmentSuperSlot:initialise()
     ISPanel.initialise(self);
 
-    table.insert(Settings.OnScaleChanged, function(scale)
+    Settings:addScaleChangedListener(self, function(scale)
         self:setX(scale * self.slotDefinition.position.x + Settings.EQUIPMENT_UI_X_OFFSET);
         self:setY(scale * self.slotDefinition.position.y + Settings.EQUIPMENT_UI_Y_OFFSET);
         self:setWidth(Settings.SUPER_SLOT_SIZE + Settings.SUPER_SLOT_SUB_ITEM_WIDTH);
@@ -75,8 +75,6 @@ function EquipmentSuperSlot:initialise()
             self:setExpanded(false)
         end)
         :setChildrenNodeProvider(self.getVisibleControllerNodes, self)
-
-    self.isController = self.controllerNode:isController(getSpecificPlayer(self.playerNum))
 end
 
 function EquipmentSuperSlot:createChildren()
@@ -94,6 +92,17 @@ function EquipmentSuperSlot:setItem(item, bodyLocation)
     if self.slotsByBodyLocation[bodyLocation] then
         self.slotsByBodyLocation[bodyLocation]:setItem(item);
     end
+end
+
+function EquipmentSuperSlot:setOverrideItem(item, bodyLocation)
+    local slot = self.slotsByBodyLocation[bodyLocation]
+    if not slot then
+        slot = EquipmentSlot:new(0, 0, bodyLocation, self.bodySlotDisplay, self.inventoryPane, self.playerNum);
+        slot:initialise();
+        self.slotsByBodyLocation[bodyLocation] = slot;
+        self.slots[#self.slots + 1] = slot;
+    end
+    slot:setItem(item);
 end
 
 function EquipmentSuperSlot:clearItem()
@@ -312,7 +321,10 @@ function EquipmentSuperSlot:render()
         self:drawRectBorder(Settings.SUPER_SLOT_SIZE - 1, 0, Settings.SUPER_SLOT_SUB_ITEM_WIDTH + 1, Settings.SUPER_SLOT_SIZE, 1, 1, 1, 1);
     end
 
-    if not self.isController and not DragAndDrop.isDragging() and self:isMouseOver() then
+    if self.controllerNode.isFocused and not self.controllerNode.selectedChild then
+        self.bodySlotDisplay:doTooltipForItem(self, itemsToDraw[1]);
+    elseif not DragAndDrop.isDragging() and self:isMouseOver() then
+        -- Smangsty: A plugged-in controller does not get to put mouse hover in witness protection.
         local x = self:getMouseX();
         local y = self:getMouseY();
 
@@ -326,8 +338,6 @@ function EquipmentSuperSlot:render()
         else
             self.bodySlotDisplay:closeTooltip();
         end
-    elseif self.controllerNode.isFocused and not self.controllerNode.selectedChild then
-        self.bodySlotDisplay:doTooltipForItem(self, itemsToDraw[1]);
     end
 end
 

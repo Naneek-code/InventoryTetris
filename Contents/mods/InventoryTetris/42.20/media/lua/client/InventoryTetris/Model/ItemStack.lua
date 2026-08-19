@@ -88,6 +88,7 @@ function ItemStack.containsItem(stack, item)
 end
 
 function ItemStack.canAddItem(stack, item)
+    if not item then return false end
     if stack.count == 0 then return true end
 
     if not ItemStack.isSameType(stack, item) then return false end

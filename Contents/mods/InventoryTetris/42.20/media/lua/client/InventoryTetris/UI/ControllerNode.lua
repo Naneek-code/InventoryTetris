@@ -29,4 +29,33 @@ function ControllerNode.ensureVisibleXY(uiElement, screenX, screenY)
     end
 end
 
+-- FuX: Child Tetris surfaces can own focus directly, so clearing focus alone does not run ISInventoryPage:onLoseJoypadFocus.
+function ControllerNode.exitInventory(playerNum)
+    setJoypadFocus(playerNum, nil)
+
+    local inventoryPage = getPlayerInventory(playerNum)
+    local lootPage = getPlayerLoot(playerNum)
+    if inventoryPage then
+        if inventoryPage.inventoryPane then
+            inventoryPage.inventoryPane.doController = false
+        end
+        inventoryPage:setVisible(false)
+    end
+    if lootPage then
+        if lootPage.inventoryPane then
+            lootPage.inventoryPane.doController = false
+        end
+        lootPage:setVisible(false)
+    end
+
+    local playerObj = getSpecificPlayer(playerNum)
+    if playerObj then
+        playerObj:setBannedAttacking(false)
+        if playerObj:getVehicle() and playerObj:getVehicle():isDriver(playerObj) then
+            local dashboard = getPlayerVehicleDashboard(playerNum)
+            if dashboard then dashboard:addToUIManager() end
+        end
+    end
+end
+
 return ControllerNode

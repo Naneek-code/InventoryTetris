@@ -12,10 +12,13 @@ function ISInventoryPage:onJoypadDown(button)
 
     if button == SETTINGS.TOGGLE_UI_CONTROLLER_BIND then
         if SETTINGS.InventoryTetris then
-            if inventoryPage.equipmentUiPanel.isClosed then
+            -- FuX: Equipment UI can be absent briefly during inventory teardown/rebuild; controller input must tolerate that gap.
+            local equipmentPanel = inventoryPage.equipmentUiPanel
+            if not equipmentPanel then return end
+            if equipmentPanel.isClosed then
                 self:toggleEquipmentUIForController()
-            end 
-            setJoypadFocus(playerNum, inventoryPage.equipmentUiPanel);
+            end
+            setJoypadFocus(playerNum, equipmentPanel);
         else
             self:toggleEquipmentUIForController()
         end
@@ -23,7 +26,7 @@ function ISInventoryPage:onJoypadDown(button)
 end
 
 -- Resize UIs when toggling the equipment UI
-local standAloneOpen = false
+local standAloneOpenByPlayer = {}
 function ISInventoryPage:toggleEquipmentUIForController()
     local playerNum = self.player
     if not playerNum then return end
@@ -58,12 +61,12 @@ function ISInventoryPage:toggleEquipmentUIForController()
 
     -- If we're opening the equipment UI and there's enough space to do so, just open it
     if not equipmentPanel.isClosed and inventoryPage:getX() - equipmentPanel:getWidth() > x then
-        standAloneOpen = true
+        standAloneOpenByPlayer[playerNum] = true
         return
     end
 
-    if standAloneOpen then
-        standAloneOpen = false
+    if standAloneOpenByPlayer[playerNum] then
+        standAloneOpenByPlayer[playerNum] = nil
         return -- Just close the equipment UI without resizing the other UIs
     end
 
@@ -100,8 +103,9 @@ local og_ISInventoryPage_onJoypadDirLeft = ISInventoryPage.onJoypadDirLeft
 function ISInventoryPage:onJoypadDirLeft(joypadData)
     og_ISInventoryPage_onJoypadDirLeft(self, joypadData)
     if self == getPlayerInventory(self.player) then
-        if self.equipmentUiPanel:isVisible() then
-            setJoypadFocus(self.player, self.equipmentUiPanel);
+        local equipmentUi = self.equipmentUiPanel
+        if equipmentUi and equipmentUi:isVisible() then
+            setJoypadFocus(self.player, equipmentUi);
         end
     end
 end
@@ -114,7 +118,7 @@ function ISInventoryPage:onJoypadDirRight(joypadData)
         if not inventoryPage then return end
 
         local equipmentUi = inventoryPage.equipmentUiPanel
-        if equipmentUi:isVisible() then
+        if equipmentUi and equipmentUi:isVisible() then
             setJoypadFocus(self.player, equipmentUi);
         end
     end

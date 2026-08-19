@@ -3,6 +3,7 @@ local EquipmentSlot = require("EquipmentUI/UI/Slots/EquipmentSlot")
 local EquipmentSuperSlot = require("EquipmentUI/UI/Slots/EquipmentSuperSlot")
 local WeaponSlot = require("EquipmentUI/UI/Slots/WeaponSlot")
 local HotbarSlot = require("EquipmentUI/UI/Slots/HotbarSlot")
+local EquipmentSlotOverrides = require("EquipmentUI/EquipmentSlotOverrides")
 
 local SUPER_SLOT_DEFS = require("EquipmentUI/Definitions/EquipmentSlotDefinitions")
 local WEAPON_SLOT_DEFS = require("EquipmentUI/Definitions/WeaponSlotDefinitions")
@@ -63,7 +64,7 @@ function BodySlotDisplay:createChildren()
     self:createEquipmentSlots();
     self:createWeaponSlots();
 
-    table.insert(SETTINGS.OnScaleChanged, function()
+    SETTINGS:addScaleChangedListener(self, function()
         local hotbar = getPlayerHotbar(self.playerNum)
         self:updateDynamicEquipmentSlots()
         self:updateHotbarSlots(hotbar)
@@ -79,6 +80,7 @@ function BodySlotDisplay:createEquipmentSlots()
     self.dynamicSlotsByBodyLocation = {};
     self.superSlots = {}
     self.superSlotsByBodyLocation = {};
+    self.superSlotsByName = {};
 
     for _, superSlotDef in pairs(SUPER_SLOT_DEFS) do
         local superslot = EquipmentSuperSlot:new(superSlotDef, self, self.inventoryPane, self.playerNum, self.popup);
@@ -86,6 +88,7 @@ function BodySlotDisplay:createEquipmentSlots()
         superslot.moveWithMouse = false
         self:addChild(superslot);
         table.insert(self.superSlots, superslot)
+        self.superSlotsByName[superSlotDef.name] = superslot
 
         for _, bodyLocation in pairs(superslot.slotDefinition.bodyLocations) do
             local list = self.superSlotsByBodyLocation[bodyLocation]
@@ -114,9 +117,12 @@ function BodySlotDisplay:updateDynamicEquipmentSlots()
     local row = 0
     for i = 1, wornItems:size() do
         local wornItem = wornItems:get(i-1)
-        if not wornItem:getItem():isHidden() then
+        local item = wornItem:getItem()
+        if not item:isHidden() then
             local bodyLocation = wornItem:getLocation()
-            if not self.superSlotsByBodyLocation[bodyLocation] then
+            local overrideSlotName = EquipmentSlotOverrides.getSlotName(item)
+            local overrideSlot = overrideSlotName and self.superSlotsByName[overrideSlotName] or nil
+            if not self.superSlotsByBodyLocation[bodyLocation] and not overrideSlot then
                 if column >= MAX_COLUMN then
                     column = 0
                     row = row + 1
@@ -185,17 +191,25 @@ function BodySlotDisplay:updateSlots()
     local wornItems = self.char:getWornItems()
     for i=1,wornItems:size() do
         local wornItem = wornItems:get(i-1)
+        local item = wornItem:getItem()
         local bodyLocation = wornItem:getLocation()
-        
-        local slotList = self.superSlotsByBodyLocation[bodyLocation]
-        if slotList then
-            for _, slot in pairs(slotList) do
-                slot:setItem(wornItem:getItem(), bodyLocation)
+        local overrideSlotName = EquipmentSlotOverrides.getSlotName(item)
+        local overrideSlot = overrideSlotName and self.superSlotsByName[overrideSlotName] or nil
+
+        if overrideSlot then
+            -- Smangsty: Let custom BodyLocations join an existing body group without rewriting the clothing mod.
+            overrideSlot:setOverrideItem(item, bodyLocation)
+        else
+            local slotList = self.superSlotsByBodyLocation[bodyLocation]
+            if slotList then
+                for _, slot in pairs(slotList) do
+                    slot:setItem(item, bodyLocation)
+                end
             end
         end
 
         if self.dynamicSlotsByBodyLocation[bodyLocation] then
-            self.dynamicSlotsByBodyLocation[bodyLocation]:setItem(wornItem:getItem())
+            self.dynamicSlotsByBodyLocation[bodyLocation]:setItem(item)
         end
     end
 end

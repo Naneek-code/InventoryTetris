@@ -31,7 +31,9 @@ end
 ---@field public HIDE_EQUIPPED_ITEMS boolean
 ---@field public TOGGLE_UI_CONTROLLER_BIND number
 ---@field public InventoryTetris any is Inventory Tetris installed?
----@field public OnScaleChanged fun(scale: number)[]
+---@field public OnScaleChanged table<ISUIElement, fun(scale: number)>
+---@field public addScaleChangedListener fun(self: EquipmentUISettings, owner: ISUIElement, callback: fun(scale: number))
+---@field public removeScaleChangedListeners fun(self: EquipmentUISettings, root: ISUIElement)
 ---@field public applyScale fun(self: EquipmentUISettings, scale: number)
 ---@field public applyHideEquippedItems fun(self: EquipmentUISettings, hide: boolean)
 ---@field public applyToggleUiControllerBind fun(self: EquipmentUISettings, bindIndex: number)
@@ -84,12 +86,45 @@ EQUIPMENT_UI_SETTINGS.applyScale = function(self, scale)
 
     self.SCALE = scale
 
-    for _, callback in pairs(self.OnScaleChanged) do
-        callback(scale)
+    -- Smangsty: Snapshot listeners so UI teardown during a scale change cannot mutate the dispatch under our feet.
+    local listeners = {}
+    for owner, callback in pairs(self.OnScaleChanged) do
+        listeners[#listeners + 1] = { owner = owner, callback = callback }
+    end
+    for _, listener in ipairs(listeners) do
+        if self.OnScaleChanged[listener.owner] == listener.callback then
+            listener.callback(scale)
+        end
     end
 end
 
 EQUIPMENT_UI_SETTINGS.OnScaleChanged = {}
+
+function EQUIPMENT_UI_SETTINGS:addScaleChangedListener(owner, callback)
+    if not owner or not callback then return end
+    self.OnScaleChanged[owner] = callback
+end
+
+function EQUIPMENT_UI_SETTINGS:removeScaleChangedListeners(root)
+    if not root then return end
+
+    local ownersToRemove = {}
+    for owner, _ in pairs(self.OnScaleChanged) do
+        local current = owner
+        while current do
+            if current == root then
+                ownersToRemove[#ownersToRemove + 1] = owner
+                break
+            end
+            current = current.parent
+        end
+    end
+
+    for _, owner in ipairs(ownersToRemove) do
+        self.OnScaleChanged[owner] = nil
+    end
+end
+
 EQUIPMENT_UI_SETTINGS:applyScale(1)
 
 -- HIDING EQUIPPED ITEMS
@@ -100,9 +135,22 @@ EQUIPMENT_UI_SETTINGS:applyHideEquippedItems(false)
 
 -- TOGGLE UI CONTROLLER BIND
 local DEFAULT_CONTROLLER_BIND = isModPresent("WookieeGamepadSupport") and 9 or 7
+local CONTROLLER_BINDS = {
+    Joypad.AButton,
+    Joypad.BButton,
+    Joypad.XButton,
+    Joypad.YButton,
+    Joypad.LBumper,
+    Joypad.RBumper,
+    Joypad.Back,
+    Joypad.Start,
+    Joypad.LStickButton,
+    Joypad.RStickButton,
+}
 
 EQUIPMENT_UI_SETTINGS.applyToggleUiControllerBind = function(self, bindIndex)
-    self.TOGGLE_UI_CONTROLLER_BIND = bindIndex - 1 
+    -- Smangsty: B42.20.3 controller callbacks use JoypadButton values, not the old raw 0-9 indexes.
+    self.TOGGLE_UI_CONTROLLER_BIND = CONTROLLER_BINDS[bindIndex] or Joypad.Back
 end
 
 EQUIPMENT_UI_SETTINGS:applyToggleUiControllerBind(DEFAULT_CONTROLLER_BIND)

@@ -1,13 +1,4 @@
-local TetrisDevTool = require("InventoryTetris/Dev/TetrisDevTool")
-
-Events.OnLoad.Add(function()
-    if not TetrisDevTool.isDebugEnabled() then return end
-    Events.OnKeyPressed.Add(function (key)
-        if key == getKeyCode("R") and isCtrlKeyDown() then
-            local player = getSpecificPlayer(0)
-
-            destroyPlayerData(player)
-            createPlayerData(0)
-        end
-    end)
-end)
+-- Smangsty: Do not register a global UI rebuild hotkey here.
+-- Ctrl+R is a normal gameplay chord (for example aim + reload) and rebuilding
+-- player UI from a gameplay keypress can invalidate live inventory/UI state.
+-- Keep UI rebuild actions explicit inside developer tooling instead.

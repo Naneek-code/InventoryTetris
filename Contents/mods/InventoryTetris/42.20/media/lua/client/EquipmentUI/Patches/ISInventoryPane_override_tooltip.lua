@@ -17,8 +17,9 @@ Events.OnGameStart.Add(function()
 
         local superSlotPopup = equipmentUi and equipmentUi.popup
 
-        local equipmentUiHasFocus = inventoryPage:isMouseOverEquipmentUi() or equipmentUi.controllerNode.isFocused
-        local superSlotPopupHasFocus = superSlotPopup:isMouseOver() or superSlotPopup.controllerNode.isFocused
+        -- Smangsty: Invisible Equipment UI surfaces must not steal tooltip ownership from the inventory.
+        local equipmentUiHasFocus = equipmentUi:isVisible() and (inventoryPage:isMouseOverEquipmentUi() or equipmentUi.controllerNode.isFocused)
+        local superSlotPopupHasFocus = superSlotPopup and superSlotPopup:isVisible() and (superSlotPopup:isMouseOver() or superSlotPopup.controllerNode.isFocused)
 
         if equipmentUiHasFocus or superSlotPopupHasFocus then
             return equipmentUi:updateTooltip()
@@ -70,7 +71,8 @@ Events.OnGameStart.Add(function()
                 self.toolRender.anchorBottomLeft = { x = self:getAbsoluteX() + self.column2, y = inventoryPage:getAbsoluteY() }
             end
             local equipmentPanel = GetPlayerEquipmentUi(self.player)
-            self.toolRender.followMouse = not self.doController and not equipmentPanel.controllerNode.isFocused
+            local equipmentHasControllerFocus = equipmentPanel and equipmentPanel.controllerNode and equipmentPanel.controllerNode.isFocused
+            self.toolRender.followMouse = not self.doController and not equipmentHasControllerFocus
             ---@diagnostic disable-next-line: need-check-nil
             self.toolRender.tooltip:setWeightOfStack(weightOfStack)
         elseif self.toolRender then

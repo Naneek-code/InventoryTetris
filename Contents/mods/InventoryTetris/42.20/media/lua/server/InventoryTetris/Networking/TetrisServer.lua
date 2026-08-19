@@ -16,6 +16,8 @@ function TetrisServer.getOrCreateUuid(tableObj)
 end
 
 local function validateTimestamps(existingData, incomingData)
+    if type(incomingData) ~= "table" then return false end
+    if type(existingData) ~= "table" then return true end
     if not existingData.lastServerTime then
         return true
     end
@@ -47,7 +49,7 @@ local function findItemByID(container, id)
 end
 
 local function sanitizeGridContainers(gridContainers)
-    if not gridContainers then return nil end
+    if type(gridContainers) ~= "table" then return nil end
     local sanitized = {}
     for k, v in pairs(gridContainers) do
         local newK = k
@@ -66,8 +68,15 @@ end
 local function onClientCommand(module, command, player, args)
     if not isServer() then return end
     if module ~= "InventoryTetris" then return end
+    if not player or type(args) ~= "table" then return end
+
+    -- Smangsty: Packet identity comes from the authenticated command player, never a client-supplied username.
+    local sender = player:getUsername()
+    if not sender then return end
+    args.sender = sender
     
     if command == "syncItemGrid" then
+        if type(args.itemID) ~= "number" or type(args.gridContainers) ~= "table" then return end
         local item = findItemByID(player:getInventory(), args.itemID)
         if item then
             local sanitizedGrid = sanitizeGridContainers(args.gridContainers)
@@ -92,7 +101,7 @@ local function onClientCommand(module, command, player, args)
 
     elseif command == "syncWorldItemGrid" then
         -- World inventory object (bag on the floor) grid sync — replaces OnReceiveGlobalModData in B42
-        if not args.itemID or not args.gridContainers then return end
+        if type(args.itemID) ~= "number" or type(args.gridContainers) ~= "table" then return end
 
         local sanitizedGrid = sanitizeGridContainers(args.gridContainers)
         local worldData = ModData.getOrCreate(WORLD_ITEM_DATA)
@@ -121,7 +130,7 @@ local function onClientCommand(module, command, player, args)
 
     elseif command == "syncVehicleGrid" then
         -- Vehicle grid sync — replaces OnReceiveGlobalModData in B42
-        if not args.vehicleKeyId or not args.gridContainers then return end
+        if type(args.vehicleKeyId) ~= "number" or type(args.gridContainers) ~= "table" then return end
 
         local sanitizedGrid = sanitizeGridContainers(args.gridContainers)
         local vehicleData = ModData.getOrCreate(VEHICLE_ITEM_DATA)
@@ -149,7 +158,7 @@ local function onClientCommand(module, command, player, args)
         end
 
     elseif command == "syncPlayerGrid" then
-        if not args.gridContainers then return end
+        if type(args.gridContainers) ~= "table" then return end
 
         local sanitizedGrid = sanitizeGridContainers(args.gridContainers)
         local existingGrid = player:getModData().gridContainers
@@ -170,6 +179,11 @@ local function onClientCommand(module, command, player, args)
         end
 
     elseif command == "syncIsoObjectGrid" then
+        if type(args.x) ~= "number" or type(args.y) ~= "number" or type(args.z) ~= "number" then return end
+        if type(args.gridContainers) ~= "table" then return end
+        if args.objIndex ~= nil and type(args.objIndex) ~= "number" then return end
+        if args.spriteName ~= nil and type(args.spriteName) ~= "string" then return end
+
         local square = getCell():getGridSquare(args.x, args.y, args.z)
         if square then
             local objects = square:getObjects()
