@@ -5,10 +5,18 @@ require "ISUI/ISUIElement"
 ---@field public isMouseOverAnyUI fun(): boolean
 
 function ISUIElement:drawTextureCenteredAndSquare(texture, x, y, targetSizePixels, alpha, r, g, b)
+    -- Smangsty: Modded/transient items may expose no resolved icon; rendering should fail closed instead of crashing the UI.
+    if not texture then
+        return
+    end
+
     ---@type number
     local texW = texture:getWidth()
     ---@type number
     local texH = texture:getHeight()
+    if not texW or not texH or texW <= 0 or texH <= 0 then
+        return
+    end
 
     local largestDimension = math.max(texW, texH)
     local scaler = targetSizePixels / largestDimension
