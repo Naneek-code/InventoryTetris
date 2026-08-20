@@ -175,6 +175,51 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Grid Tests", function
         TestUtils.assert(ItemStack.containsItem(overflowStack, item))
     end
 
+    function Tests.test_liveAnimalCarrier_skipsTransientDiscoveryWithoutChangingValidity()
+        local playerObj = getSpecificPlayer(playerNum)
+        local inventory = playerObj:getInventory()
+        local containerGrid = ItemContainerGrid.GetOrCreate(inventory, playerNum)
+        local animalItem = instanceItem("Base.Animal")
+        inventory:AddItem(animalItem)
+
+        local isAnimalCarrier = ItemContainerGrid.isLiveAnimalCarrier(animalItem)
+        local isStillValid = containerGrid:_isItemValid(animalItem)
+        local unpositioned = containerGrid:_getUnpositionedItems()
+        local foundAnimal = false
+        for _, itemData in ipairs(unpositioned) do
+            if itemData.item == animalItem then
+                foundAnimal = true
+                break
+            end
+        end
+
+        inventory:Remove(animalItem)
+        TestUtils.assert(isAnimalCarrier)
+        TestUtils.assert(isStillValid)
+        TestUtils.assert(not foundAnimal)
+    end
+
+    function Tests.test_trackUnpositionedItem_preservesFirstDetection()
+        local containerGrid = TestHelper.createContainerGrid_2x2()
+        local item = TestHelper.createItem_1x3(containerGrid.inventory)
+        local itemSet = ItemContainerGrid.getUnpositionedItemSetByPlayerNum(playerNum)
+
+        itemSet[item] = nil
+        ItemContainerGrid.trackUnpositionedItem(playerNum, item, containerGrid.inventory)
+        local candidate = itemSet[item]
+        TestUtils.assert(candidate and candidate.sourceContainer == containerGrid.inventory)
+
+        candidate.detectedAt = 12345
+        ItemContainerGrid.trackUnpositionedItem(playerNum, item, containerGrid.inventory)
+        TestUtils.assert(itemSet[item].detectedAt == 12345)
+
+        local playerInventory = getSpecificPlayer(playerNum):getInventory()
+        ItemContainerGrid.trackUnpositionedItem(playerNum, item, playerInventory)
+        TestUtils.assert(itemSet[item].sourceContainer == playerInventory)
+        TestUtils.assert(itemSet[item].detectedAt ~= 12345)
+        itemSet[item] = nil
+    end
+
     function Tests.test_willStackOverlapSelf()
         local containerGrid = TestHelper.createContainerGrid_5x5()
         local grid = containerGrid.grids[firstGrid]

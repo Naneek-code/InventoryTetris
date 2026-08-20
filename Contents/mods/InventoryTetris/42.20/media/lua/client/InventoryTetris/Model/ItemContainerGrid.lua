@@ -31,7 +31,7 @@ local ItemContainerGrid = {}
 ItemContainerGrid._tempGrid = {} -- For hovering over container items, so we don't create a new grid every frame to evaluate if an item can be placed into a hovered backpack
 ItemContainerGrid._gridCache = {} -- Just created grids, so we don't end up creating a new grid multiple times in a single tick when looping or something
 
-ItemContainerGrid._unpositionedItemSetsByPlayer = {} -- A list of items that failed to be positioned in inventories held by the player. Used by the auto drop system.
+ItemContainerGrid._unpositionedItemSetsByPlayer = {} -- Auto-drop candidates keyed by item, with source container and first-detected time.
 
 function ItemContainerGrid.getUnpositionedItemSetByPlayerNum(playerNum)
     local set = ItemContainerGrid._unpositionedItemSetsByPlayer[playerNum]
@@ -40,6 +40,21 @@ function ItemContainerGrid.getUnpositionedItemSetByPlayerNum(playerNum)
         ItemContainerGrid._unpositionedItemSetsByPlayer[playerNum] = set
     end
     return set
+end
+
+function ItemContainerGrid.trackUnpositionedItem(playerNum, item, sourceContainer)
+    local set = ItemContainerGrid.getUnpositionedItemSetByPlayerNum(playerNum)
+    local candidate = set[item]
+    if type(candidate) ~= "table" or candidate.sourceContainer ~= sourceContainer then
+        set[item] = {
+            sourceContainer = sourceContainer,
+            detectedAt = getTimestampMs(),
+        }
+    end
+end
+
+function ItemContainerGrid.isLiveAnimalCarrier(item)
+    return item and instanceof(item, "AnimalInventoryItem")
 end
 
 --- TODO: Remove playerNum, grids must become indifferent to who is viewing them, interactions can instead take the player as a parameter as needed
@@ -620,11 +635,9 @@ function ItemContainerGrid:_updateGridPositions()
     end
 
     if self.isOnPlayer then
-        local unpositionedItemSet = ItemContainerGrid.getUnpositionedItemSetByPlayerNum(self.playerNum)
         if getPlayerHotbar(self.playerNum) then -- Wait for the hotbar to be initialized
             for _, unpositionedItemData in ipairs(remainingItemData) do
-                local item = unpositionedItemData.item
-                unpositionedItemSet[item] = true
+                ItemContainerGrid.trackUnpositionedItem(self.playerNum, unpositionedItemData.item, self.inventory)
             end
         end
     end
@@ -649,7 +662,9 @@ function ItemContainerGrid:_getUnpositionedItems()
     local items = self.inventory:getItems();
     for i = 0, items:size()-1 do
         local item = items:get(i);
-        if not positionedItems[item:getID()] and self:_isItemValid(item) then
+        local isLiveAnimalCarrier = self.isPlayerInventory and ItemContainerGrid.isLiveAnimalCarrier(item)
+        if not positionedItems[item:getID()] and self:_isItemValid(item) and not isLiveAnimalCarrier then
+            -- Smangsty: Vanilla owns live animal hand state; don't spatialize a carrier just because MP hasn't caught its breath yet.
             local w, h = TetrisItemData.getItemSize(item, false)
             local size = w * h
             table.insert(unpositionedItemData, {item = item, size = size})

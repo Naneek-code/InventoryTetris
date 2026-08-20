@@ -1,4 +1,5 @@
 require("ISUI/ISInventoryPaneContextMenu")
+require("TimedActions/ISInventoryTransferUtil")
 local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
 local ItemGridUI = require("InventoryTetris/UI/Grid/ItemGridUI")
 
@@ -7,50 +8,69 @@ local ItemGridUI = require("InventoryTetris/UI/Grid/ItemGridUI")
 
 Events.OnGameBoot.Add(function()
     local function quickMoveItems(items, playerNum)
-        local invPage = getPlayerInventory(playerNum)
-        local targetContainers = ItemGridUI.getOrderedBackpacks(invPage)
+        if not items or #items == 0 then return false end
 
-        local movedItem = nil
+        local invPage = getPlayerInventory(playerNum)
         local playerObj = getSpecificPlayer(playerNum)
+        if not invPage or not playerObj then return false end
+
+        local targetContainers = ItemGridUI.getOrderedBackpacks(invPage)
+        local transfers = {}
+
+        -- Plan the whole move before queuing anything. A failed fit must not leave half a vanilla-style batch behind.
         for _, item in ipairs(items) do
+            if not item or item:isHumanCorpse() then
+                return false
+            end
+
+            local sourceContainer = item:getContainer()
+            if not sourceContainer then return true end
+
             local targetContainer = nil
             for _, testContainer in ipairs(targetContainers) do
-                local gridContainer = ItemContainerGrid.GetOrCreate(testContainer, playerNum)
-                if gridContainer:canAddItem(item) then
-                    targetContainer = testContainer
-                    break
+                if testContainer ~= sourceContainer then
+                    local gridContainer = ItemContainerGrid.GetOrCreate(testContainer, playerNum)
+                    if gridContainer:canAddItem(item) then
+                        targetContainer = testContainer
+                        break
+                    end
                 end
             end
 
-            if not targetContainer then return end
-
-            local transfer = ISInventoryTransferAction:new(playerObj, item, item:getContainer(), targetContainer)
-            transfer.enforceTetrisRules = true
-            ISTimedActionQueue.add(transfer)
-
-            if movedItem == nil then
-                movedItem = transfer:isValid()
-            end
+            if not targetContainer then return true end
+            transfers[#transfers + 1] = { item = item, source = sourceContainer, target = targetContainer }
         end
 
-        return movedItem
+        if #transfers == 0 then return true end
+        if not luautils.walkToContainer(transfers[1].source, playerNum) then return true end
+
+        -- Smangsty: One grab means one transfer per item; queuing ours and vanilla's copy races B42 MP transactions.
+        for _, planned in ipairs(transfers) do
+            local transfer = ISInventoryTransferUtil.newInventoryTransferAction(playerObj, planned.item, planned.source, planned.target)
+            transfer.enforceTetrisRules = true
+            ISTimedActionQueue.add(transfer)
+        end
+
+        return true
     end
 
     local ogOnGrabItems = ISInventoryPaneContextMenu.onGrabItems
     function ISInventoryPaneContextMenu.onGrabItems(stacks, playerNum)
-        if quickMoveItems(ISInventoryPane.getActualItems(stacks), playerNum) then
+        local items = ISInventoryPane.getActualItems(stacks)
+        if not quickMoveItems(items, playerNum) then
             ogOnGrabItems(stacks, playerNum)
         end
     end
 
-
     local ogOnGrabHalfItems = ISInventoryPaneContextMenu.onGrabHalfItems
     function ISInventoryPaneContextMenu.onGrabHalfItems(stacks, playerNum)
-        local halfItems = ISInventoryPane.getActualItems(stacks)
-        local count = math.ceil(#halfItems/2)
-        halfItems[count] = nil -- remove this index so ipairs stops here
+        local items = ISInventoryPane.getActualItems(stacks)
+        local halfItems = {}
+        for i = 1, math.floor(#items / 2) do
+            halfItems[#halfItems + 1] = items[i]
+        end
 
-        if quickMoveItems(halfItems, playerNum) then
+        if not quickMoveItems(halfItems, playerNum) then
             ogOnGrabHalfItems(stacks, playerNum)
         end
     end
@@ -58,7 +78,8 @@ Events.OnGameBoot.Add(function()
     local ogOnGrabOneItems = ISInventoryPaneContextMenu.onGrabOneItems
     function ISInventoryPaneContextMenu.onGrabOneItems(stacks, playerNum)
         local items = ISInventoryPane.getActualItems(stacks)
-        if quickMoveItems({items[1]}, playerNum) then
+        local item = items[1]
+        if not item or not quickMoveItems({ item }, playerNum) then
             ogOnGrabOneItems(stacks, playerNum)
         end
     end
