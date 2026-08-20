@@ -84,9 +84,20 @@ function TetrisItemData.getItemData_squishState(item, isSquished)
     return TetrisItemData._getItemDataByFullType(item, fType, isSquished)
 end
 
-function TetrisItemData.getMaxStackSize(item)
+function TetrisItemData.getBaseMaxStackSize(item)
     local data = TetrisItemData._getItemData(item)
     return data.maxStackSize or 1
+end
+
+function TetrisItemData.getMaxStackSize(item)
+    local data = TetrisItemData._getItemData(item)
+    local maxStack = data.maxStackSize or 1
+
+    -- Smangsty: Manual/data-pack values stay canonical; automatic values were already multiplied by the calculator.
+    if data._autoCalculated then
+        return maxStack
+    end
+    return TetrisItemCalculator.applyStackSizeMultiplier(maxStack)
 end
 
 function TetrisItemData.getSquishedFullType(item)
@@ -125,6 +136,12 @@ function TetrisItemData._getSquishedId(fType)
 end
 
 function TetrisItemData._getItemDataByFullType(item, fType, isSquished)
+    -- Smangsty: Dev overrides use stable item IDs; dynamic runtime cache keys must not hide a saved manual edit.
+    local devData = TetrisItemData._devItemData[fType]
+    if devData then
+        return devData
+    end
+
     if TetrisItemCalculator._dynamicSizeItems[fType] then
         local weight = (item and FeatherWeight and FeatherWeight.sizingWeight(item)) or (item and item:getActualWeight())
         fType = fType .. tostring(weight)

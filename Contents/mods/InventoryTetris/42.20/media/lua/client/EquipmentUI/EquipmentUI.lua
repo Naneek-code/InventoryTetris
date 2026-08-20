@@ -1,9 +1,8 @@
+local InventoryTetrisVersion = require("InventoryTetris/Version")
+
 local EquipmentUI = {
-    version = {
-        major = 2,
-        minor = 3,
-        revision = 1,
-    }
+    -- Smangsty: Equipment UI ships with Inventory Tetris; keep this alias for callers that still read EquipmentUI.version.
+    version = InventoryTetrisVersion,
 }
 
 return EquipmentUI

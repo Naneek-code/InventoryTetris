@@ -1,14 +1,7 @@
 local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local CompatibilityPopupWindow = require("InventoryTetris/UI/Windows/CompatibilityPopupWindow")
-local Version = require("Notloc/Versioning/Version")
-
----@diagnostic disable-next-line: undefined-global
-local EquipmentUI = require("EquipmentUI/EquipmentUI")
-
-local REQUIRED_EQUIPMENT_UI_VERSION = Version:new(2,3,1)
 
 local TETRIS_IMG = getTexture("media/textures/Compatibility/tetris.png")
-local EQUIPMENT_IMG = getTexture("media/textures/Compatibility/equipment_ui.png")
 
 local InventoryTetrisIncompatibleModWarningSystem = {}
 
@@ -18,12 +11,6 @@ local function isModActive(modID)
 end
 
 function InventoryTetrisIncompatibleModWarningSystem.showCompatibilityIssues()
-    if not EquipmentUI or Version.isBelow(EquipmentUI.version, REQUIRED_EQUIPMENT_UI_VERSION.major, REQUIRED_EQUIPMENT_UI_VERSION.minor, REQUIRED_EQUIPMENT_UI_VERSION.patch) then
-        local cpw = CompatibilityPopupWindow:new(100, 100, TETRIS_IMG, InventoryTetris.version, EQUIPMENT_IMG, EquipmentUI and EquipmentUI.version, REQUIRED_EQUIPMENT_UI_VERSION)
-        cpw:initialise()
-        cpw:addToUIManager()
-    end
-
     local modDat = ModData.getOrCreate("tetris_compat_popup")
     if modDat["doNotShowAgain"] then return end
 

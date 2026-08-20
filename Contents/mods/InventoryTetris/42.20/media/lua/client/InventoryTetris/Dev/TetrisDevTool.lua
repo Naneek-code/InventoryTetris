@@ -303,7 +303,7 @@ function TetrisDevTool.openEditItem(item)
     nameLabel:instantiate();
     editWindow:addChild(nameLabel);
     
-    local maxStackSize = TetrisItemData.getMaxStackSize(item)
+    local maxStackSize = TetrisItemData.getBaseMaxStackSize(item)
 
     local maxStackLabel = ISLabel:new(10, 55, 10, "Max Stack:", 1, 1, 1, 1, UIFont.Small, true);
     maxStackLabel:initialise();
@@ -394,6 +394,8 @@ function TetrisDevTool.openEditItem(item)
     end,  {a=0.25, r=1, g=1, b=1});
 
     itemRenderer:addChild(dragHandle);
+    -- Smangsty: Item cells have no inter-cell border; keep their resize math separate from container-grid spacing.
+    dragHandle.gridCellSize = OPT.TEXTURE_SIZE;
     dragHandle:setX((width - 1) * OPT.TEXTURE_SIZE);
     dragHandle:setY((height - 1) * OPT.TEXTURE_SIZE);
 
@@ -500,7 +502,7 @@ function TetrisDevTool.getGridXYFromHandle(handle)
     if x < 0 then x = 0 end
     if y < 0 then y = 0 end
 
-    local effectiveCellSize = handle.pixelIncrement - 1
+    local effectiveCellSize = handle.gridCellSize or (handle.pixelIncrement - 1)
     local gridX = math.floor(x / effectiveCellSize)
     local gridY = math.floor(y / effectiveCellSize)
     return gridX, gridY

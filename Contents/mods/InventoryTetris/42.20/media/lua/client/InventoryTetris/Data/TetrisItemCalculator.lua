@@ -19,6 +19,27 @@ local function sizingScriptWeight(item)
     return script and script:getActualWeight() or (item and item:getActualWeight() or 0)
 end
 
+local function sizingBaseWeight(item)
+    if FeatherWeight then return FeatherWeight.sizingBaseWeight(item) end
+    return item:getWeight()
+end
+
+local function getFluidContainerCapacity(item)
+    local script = item and item.getScriptItem and item:getScriptItem()
+    local fluidType = ComponentType and ComponentType.FluidContainer
+    if script and fluidType and script.containsComponent and script:containsComponent(fluidType) then
+        local fluidScript = script:getComponentScriptFor(fluidType)
+        if fluidScript then
+            -- Smangsty: Footprints are cached by item type; prefer stable script capacity so instance timing/state cannot change the cached shape.
+            return fluidScript:getCapacity()
+        end
+    end
+
+    -- Unknown mod items can still expose only a runtime fluid component; keep the generic compatibility fallback.
+    local fluidContainer = item and item.getFluidContainer and item:getFluidContainer()
+    return fluidContainer and fluidContainer:getCapacity() or nil
+end
+
 TetrisItemCalculator._dynamicSizeItems = {} -- Defined in TetrisItemData instead, directly overwrites this
 
 function TetrisItemCalculator.calculateItemInfo(item)
@@ -53,8 +74,9 @@ end
 ---@return number
 ---@return number
 function TetrisItemCalculator._calculateItemSize(item, category)
-    if item:getFluidContainer() then
-        return TetrisItemCalculator._calculateFluidContainerSize(item, category)
+    local fluidCapacity = getFluidContainerCapacity(item)
+    if fluidCapacity then
+        return TetrisItemCalculator._calculateFluidContainerSize(item, category, fluidCapacity)
     end
 
     local calculation = TetrisItemCalculator._itemClassToSizeCalculation[category]
@@ -64,45 +86,6 @@ function TetrisItemCalculator._calculateItemSize(item, category)
     else
         return calculation.x, calculation.y
     end
-end
-
-function TetrisItemCalculator._calculateItemStackability(item, category)
-    if not item:getScriptItem() or item:getScriptItem():isNoStack() then
-        return 1
-    end
-
-    if item:getScriptItem():isItemType(ItemType.CONTAINER) then
-        return 1
-    end
-
-    if item:getScriptItem():isItemType(ItemType.KEY) then
-        return 10
-    end
-
-    if item:IsKeyRing() then
-        return 1
-    end
-
-    if item:getFluidContainer() then
-        return 1
-    end
-
-    local maxStackSize = item:getScriptItem():getMaxStackSize()
-    if maxStackSize > 1 then
-        return maxStackSize
-    end
-
-    local weight = sizingScriptWeight(item)
-    if weight <= 0.1 then
-        return 10
-    end
-    if weight <= 0.3 then
-        return 5
-    end
-    if weight <= 0.6 then
-        return 2
-    end
-    return 1
 end
 
 function TetrisItemCalculator._calculateItemSizeMagazine(item)
@@ -130,8 +113,8 @@ function TetrisItemCalculator._calculateRangedWeaponSize(item)
     local width = 2
     local height = 1
 
-    -- Read weight from the script item to easily ignore attachment weight
-    local weight = item:getScriptItem():getActualWeight()
+    -- Read the original script weight so weight scaling never changes the Tetris footprint.
+    local weight = sizingScriptWeight(item)
 
     if weight >= 2 then
         width = 3
@@ -202,8 +185,8 @@ function TetrisItemCalculator._calculateItemSizeClothing(item)
         width = 3
         height = 3
     else
-        -- Read weight from the script item to ignore wetness weight and the like
-        local weight = item:getScriptItem():getActualWeight()
+        -- Read the original script weight to ignore wetness and weight scaling.
+        local weight = sizingScriptWeight(item)
         if weight >= 3.0 then
             width = 3
             height = 3
@@ -300,8 +283,8 @@ function TetrisItemCalculator._calculateItemSizeWeightBased(item, weight)
 end
 
 function TetrisItemCalculator._calculateFoodSize(item)
-    -- Read weight from the script item to ignore half eaten weight and the like
-    local weight = item:getScriptItem():getActualWeight()
+    -- Read the original script weight to ignore partial consumption and weight scaling.
+    local weight = sizingScriptWeight(item)
     local x, y = TetrisItemCalculator._calculateItemSizeWeightBasedTall(item, weight)
 
     -- Cap the size of food items
@@ -314,11 +297,14 @@ function TetrisItemCalculator._calculateFoodSize(item)
     return x, y
 end
 
-function TetrisItemCalculator._calculateFluidContainerSize(item, category)
-    local fluidContainer = item:getFluidContainer()
+function TetrisItemCalculator._calculateFluidContainerSize(item, category, fluidCapacity)
+    -- Smangsty: Script capacity is stable during item construction; runtime fluid components can arrive after the first cached size lookup.
+    fluidCapacity = fluidCapacity or getFluidContainerCapacity(item)
+    if not fluidCapacity then
+        return TetrisItemCalculator._calculateMiscSize(item)
+    end
 
     -- Small containers are 1x1
-    local fluidCapacity = fluidContainer:getCapacity()
     if fluidCapacity <= 0.5 then
         return 1, 1
     end
@@ -355,12 +341,12 @@ function TetrisItemCalculator._calculateEntertainmentSize(item)
 end
 
 function TetrisItemCalculator._calculateMoveableSize(item)
-    local weight = item:getWeight() -- Ignores the weight of fluidContainers
+    local weight = sizingBaseWeight(item) -- Ignores fluid weight and the sandbox weight multiplier.
     return TetrisItemCalculator._calculateItemDimensions(weight * 2 + 2, 2)
 end
 
 function TetrisItemCalculator._calculateAnimalCorpseSize(item)
-    local weight = item:getActualWeight()
+    local weight = sizingWeight(item)
     if weight < 1 then
         return 1, 1
     end
@@ -370,7 +356,7 @@ function TetrisItemCalculator._calculateAnimalCorpseSize(item)
 end
 
 function TetrisItemCalculator._calculateBookSize(item)
-    local weight = item:getActualWeight()
+    local weight = sizingWeight(item)
     if weight < 0.2 then
         return 1, 1
     end
@@ -434,8 +420,8 @@ local function roundStackability(stackability)
     return math.max(1, math.floor(stackability + 0.5))
 end
 
--- Smangsty: Apply the free-entry sandbox multiplier only to items that already stack.
-local function applyStackSizeMultiplier(maxStack)
+-- Smangsty: Keep multiplier validation centralized so automatic and explicit stack definitions obey the same rules.
+function TetrisItemCalculator.applyStackSizeMultiplier(maxStack)
     if maxStack <= 1 then
         return 1
     end
@@ -452,13 +438,13 @@ end
 
 ---@param item InventoryItem
 function TetrisItemCalculator._simpleWeightStackability(item)
-    local weight = item:getScriptItem():getActualWeight() -- Avoid wetness effecting weight
+    local weight = sizingScriptWeight(item) -- Avoid wetness and sandbox weight scaling.
     return math.ceil(0.75 / weight)
 end
 
 function TetrisItemCalculator._calculateItemStackability(item, itemClass)
     local maxStack = 1
-    if item:getFluidContainer() or TetrisItemCalculator._dynamicSizeItems[item:getFullType()] then
+    if getFluidContainerCapacity(item) or TetrisItemCalculator._dynamicSizeItems[item:getFullType()] then
         return maxStack
     end
 
@@ -469,13 +455,13 @@ function TetrisItemCalculator._calculateItemStackability(item, itemClass)
         maxStack = calculation
     end
 
-    return applyStackSizeMultiplier(maxStack)
+    return TetrisItemCalculator.applyStackSizeMultiplier(maxStack)
 end
 
 function TetrisItemCalculator._calculateAmmoStackability(item)
     local maxStack = 30
 
-    local weight = item:getActualWeight()
+    local weight = sizingScriptWeight(item)
     if weight >= 0.0375 then
         maxStack = 12
     elseif weight >= 0.025 then
@@ -519,12 +505,12 @@ end
 
 ---@param item InventoryItem
 function TetrisItemCalculator._calculateFoodStackability(item)
-    local weight = item:getScriptItem():getActualWeight() -- Use the script item to avoid partially eaten food weight
+    local weight = sizingScriptWeight(item) -- Ignore partial consumption and sandbox weight scaling.
     return roundStackability(1 / weight)
 end
 
 function TetrisItemCalculator._weaponStackability(item)
-    local weight = item:getActualWeight() * 2
+    local weight = sizingWeight(item) * 2
     return roundStackability(1 / weight)
 end
 

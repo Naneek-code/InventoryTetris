@@ -4,10 +4,6 @@ local ScrollPanel = require("Notloc/UI/ScrollPanel")
 local ControllerNode = require("Notloc/UI/ControllerNode")
 local BodySlotDisplay = require("EquipmentUI/UI/BodySlotDisplay")
 local SuperSlotPopup = require("EquipmentUI/UI/Slots/EquipmentSuperSlotPopup")
-local EquipmentUI = require("EquipmentUI/EquipmentUI")
-
-local VERSION = "v"..EquipmentUI.version.major.."."..EquipmentUI.version.minor.."."..EquipmentUI.version.revision
-
 local ITEMS_VISIBLE_TEX = getTexture("media/ui/equipmentui/ItemsVisible.png")
 local ITEMS_HIDDEN_TEX = getTexture("media/ui/equipmentui/ItemsHidden.png")
 
@@ -78,8 +74,6 @@ function EquipmentPanel:prerender()
     local xOffset = hasScrollBar and 12 or 0
 
     self:setWidth(Settings.EQUIPMENT_WIDTH + xOffset)
-    
-    self:drawText(VERSION, 4, self.height - 28, 1, 1, 1, 0.25, UIFont.Small);
 end
 
 function EquipmentPanel:render()

@@ -1,8 +1,9 @@
 local Version = require("Notloc/Versioning/Version")
+local InventoryTetrisVersion = require("InventoryTetris/Version")
 
 -- Intentional global
 InventoryTetris = {
-    version = Version:new(6, 11, 5, "beta"),
+    version = InventoryTetrisVersion,
 }
 
 print("InventoryTetris version: " .. Version.format(InventoryTetris.version))
