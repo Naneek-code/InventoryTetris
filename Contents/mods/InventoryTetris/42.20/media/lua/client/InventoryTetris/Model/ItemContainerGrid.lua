@@ -57,6 +57,21 @@ function ItemContainerGrid.isLiveAnimalCarrier(item)
     return item and instanceof(item, "AnimalInventoryItem")
 end
 
+function ItemContainerGrid:_discardLegacyPlayerGridData()
+    local modData = self.player and self.player:getModData()
+    local gridContainers = modData and modData.gridContainers
+    local containerData = gridContainers and gridContainers[self.inventory:getType()]
+    if not containerData or not containerData[2] then
+        return
+    end
+
+    -- Smangsty: Remove obsolete grid #2 before the 3x4 reflow so toggling this option cannot resurrect duplicate saved placements.
+    containerData[2] = nil
+    if isClient() and TetrisClient then
+        TetrisClient.queueModDataSync(self.player)
+    end
+end
+
 --- TODO: Remove playerNum, grids must become indifferent to who is viewing them, interactions can instead take the player as a parameter as needed
 --- TODO: Remove playerNum from the cache
 ---@param inventory ItemContainer
@@ -70,9 +85,14 @@ function ItemContainerGrid:new(inventory, playerNum, definitionOverride)
     o.inventory = inventory
     o.playerNum = playerNum
     o.containerDefinition = definitionOverride or TetrisContainerData.getContainerDefinition(inventory)
+    o.player = getSpecificPlayer(playerNum)
 
-    o.isPlayerInventory = inventory == getSpecificPlayer(playerNum):getInventory()
+    o.isPlayerInventory = inventory == o.player:getInventory()
     o.isOnPlayer = o.isPlayerInventory or (inventory:getContainingItem() and inventory:getContainingItem():isInPlayerInventory())
+
+    if o.isPlayerInventory and o.containerDefinition._isDefaultPlayerInventoryGrid then
+        o:_discardLegacyPlayerGridData()
+    end
 
     o.isFloor = o.containerDefinition.trueType == "floor"
     o.grids = o:createGrids(inventory)
@@ -83,7 +103,6 @@ function ItemContainerGrid:new(inventory, playerNum, definitionOverride)
     o._onSecondaryGridsRemoved = {}
 
     o.disableSecondaryGrids = definitionOverride or not o.isPlayerInventory
-    o.player = getSpecificPlayer(playerNum)
 
     -- Don't refresh the player's main inventory before we register our secondary grids or the main pocket might claim items that are supposed to go into the secondary grids
     if o.disableSecondaryGrids then

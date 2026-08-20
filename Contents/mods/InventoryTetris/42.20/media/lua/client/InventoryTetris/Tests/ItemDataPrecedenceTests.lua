@@ -5,6 +5,7 @@ local TetrisItemData = require("InventoryTetris/Data/TetrisItemData")
 local TetrisItemCalculator = require("InventoryTetris/Data/TetrisItemCalculator")
 local TetrisItemCategory = require("InventoryTetris/Data/TetrisItemCategory")
 local TetrisContainerData = require("InventoryTetris/Data/TetrisContainerData")
+local ItemContainerGrid = require("InventoryTetris/Model/ItemContainerGrid")
 
 TestFramework.registerTestModule("Inventory Tetris", "Item Data Precedence Tests", function ()
     local Tests = TestUtils.newTestModule("client/InventoryTetris/Tests/ItemDataPrecedenceTests.lua")
@@ -19,6 +20,9 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Data Precedence Tests
     local originalFeatherWeight
     local originalContainerData
     local originalDevContainerData
+    local originalPlayerContainerData
+    local originalDevPlayerContainerData
+    local originalEnablePlayerInventoryGrid
 
     function Tests._setup()
         originalItemData = TetrisItemData._itemData[testFullType]
@@ -29,13 +33,18 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Data Precedence Tests
         originalFeatherWeight = FeatherWeight
         originalContainerData = TetrisContainerData._containerDefinitions[testContainerKey]
         originalDevContainerData = TetrisContainerData._devContainerDefinitions[testContainerKey]
+        originalPlayerContainerData = TetrisContainerData._containerDefinitions["none"]
+        originalDevPlayerContainerData = TetrisContainerData._devContainerDefinitions["none"]
+        originalEnablePlayerInventoryGrid = SandboxVars.InventoryTetris.EnablePlayerInventoryGrid
 
         TetrisItemData._itemData[testFullType] = nil
         TetrisItemData._devItemData[testFullType] = nil
         TetrisItemCalculator._dynamicSizeItems[testFullType] = nil
         TetrisContainerData._containerDefinitions[testContainerKey] = nil
         TetrisContainerData._devContainerDefinitions[testContainerKey] = nil
+        TetrisContainerData._devContainerDefinitions["none"] = nil
         SandboxVars.InventoryTetris.StackSizeMultiplier = 1.0
+        SandboxVars.InventoryTetris.EnablePlayerInventoryGrid = false
     end
 
     function Tests._teardown()
@@ -48,7 +57,10 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Data Precedence Tests
         TetrisItemCalculator._dynamicSizeItems[testFullType] = originalDynamicSize
         TetrisContainerData._containerDefinitions[testContainerKey] = originalContainerData
         TetrisContainerData._devContainerDefinitions[testContainerKey] = originalDevContainerData
+        TetrisContainerData._containerDefinitions["none"] = originalPlayerContainerData
+        TetrisContainerData._devContainerDefinitions["none"] = originalDevPlayerContainerData
         SandboxVars.InventoryTetris.StackSizeMultiplier = originalStackMultiplier
+        SandboxVars.InventoryTetris.EnablePlayerInventoryGrid = originalEnablePlayerInventoryGrid
         FeatherWeight = originalFeatherWeight
     end
 
@@ -137,6 +149,82 @@ TestFramework.registerTestModule("Inventory Tetris", "Item Data Precedence Tests
         TetrisContainerData._devContainerDefinitions[testContainerKey] = devDefinition
         resolved = TetrisContainerData._getContainerDefinitionByKey(container, testContainerKey)
         TestUtils.assert(resolved == devDefinition)
+    end
+
+    function Tests.test_playerInventoryGridIsOptInAndDevOverrideWins()
+        local container = {
+            getType = function() return "none" end,
+            getCapacity = function() return 0 end,
+        }
+        local legacyDefinition = {
+            gridDefinitions = {
+                {size = {width = 1, height = 1}, position = {x = 0, y = 0}},
+                {size = {width = 1, height = 1}, position = {x = 1, y = 0}},
+            },
+        }
+
+        TetrisContainerData._containerDefinitions["none"] = legacyDefinition
+        SandboxVars.InventoryTetris.EnablePlayerInventoryGrid = false
+        local resolved = TetrisContainerData._getContainerDefinitionByKey(container, "none")
+        TestUtils.assert(resolved == legacyDefinition)
+
+        SandboxVars.InventoryTetris.EnablePlayerInventoryGrid = true
+        resolved = TetrisContainerData._getContainerDefinitionByKey(container, "none")
+        TestUtils.assert(#resolved.gridDefinitions == 1)
+        TestUtils.assert(resolved.gridDefinitions[1].size.width == 4)
+        TestUtils.assert(resolved.gridDefinitions[1].size.height == 3)
+        TestUtils.assert(resolved.validCategories == nil)
+        TestUtils.assert(resolved.maxSize == nil)
+
+        local devDefinition = {
+            gridDefinitions = {{size = {width = 5, height = 6}, position = {x = 0, y = 0}}},
+        }
+        TetrisContainerData._devContainerDefinitions["none"] = devDefinition
+        resolved = TetrisContainerData._getContainerDefinitionByKey(container, "none")
+        TestUtils.assert(resolved == devDefinition)
+    end
+
+    function Tests.test_playerInventorySettingDoesNotReplaceAuthoredCustomLayout()
+        local container = {
+            getType = function() return "none" end,
+            getCapacity = function() return 0 end,
+        }
+        local customDefinition = {
+            gridDefinitions = {{size = {width = 7, height = 4}, position = {x = 0, y = 0}}},
+        }
+
+        TetrisContainerData._containerDefinitions["none"] = customDefinition
+        SandboxVars.InventoryTetris.EnablePlayerInventoryGrid = true
+        local resolved = TetrisContainerData._getContainerDefinitionByKey(container, "none")
+        TestUtils.assert(resolved == customDefinition)
+
+        local customStockShape = {
+            gridDefinitions = {
+                {size = {width = 1, height = 1}, position = {x = 0, y = 0}},
+                {size = {width = 1, height = 1}, position = {x = 1, y = 0}},
+            },
+            maxSize = 1,
+        }
+        TetrisContainerData._containerDefinitions["none"] = customStockShape
+        resolved = TetrisContainerData._getContainerDefinitionByKey(container, "none")
+        TestUtils.assert(resolved == customStockShape)
+    end
+
+    function Tests.test_playerInventoryMigrationClearsObsoleteSecondGridOnly()
+        local gridOne = {stacks = {{x = 0, y = 0}}}
+        local gridTwo = {stacks = {{x = 1, y = 0}}}
+        local modData = {gridContainers = {none = {[1] = gridOne, [2] = gridTwo}}}
+        local oldTetrisClient = TetrisClient
+        TetrisClient = nil
+
+        ItemContainerGrid._discardLegacyPlayerGridData({
+            player = {getModData = function() return modData end},
+            inventory = {getType = function() return "none" end},
+        })
+
+        TetrisClient = oldTetrisClient
+        TestUtils.assert(modData.gridContainers.none[1] == gridOne)
+        TestUtils.assert(modData.gridContainers.none[2] == nil)
     end
 
     function Tests.test_fluidSizingUsesStableScriptComponentBeforeRuntimeAttachment()

@@ -12,6 +12,8 @@
     "Sandbox_InventoryTetris_ItemTransferSpeedMultiplier_tooltip": "Multiplier for how fast items transfer between containers. (Singleplayer Only. Disabled in MP due to server limits).",
     "Sandbox_InventoryTetris_BonusGridSize": "Global Bonus Grid Size",
     "Sandbox_InventoryTetris_BonusGridSize_tooltip": "Adds extra grid width and height to ALL inventory containers globally.",
+    "Sandbox_InventoryTetris_EnablePlayerInventoryGrid": "Enable Player Inventory Grid",
+    "Sandbox_InventoryTetris_EnablePlayerInventoryGrid_tooltip": "Adds a 4x3 general-purpose grid to the character's main inventory, large enough for common 2x2 crafting and cooking items. Clothing pockets remain separate. The Dev Tool can override the player grid size.",
     "Sandbox_InventoryTetris_StackSizeMultiplier": "Global Stack Size Multiplier",
     "Sandbox_InventoryTetris_StackSizeMultiplier_tooltip": "Multiplies Inventory Tetris stack limits globally. Enter a value from 0.01 to 100.0. Default is 1.0. Items that do not stack remain non-stackable.",
     "Sandbox_InventoryTetris_ItemWeightMultiplier": "Item Weight Multiplier",

@@ -21,6 +21,7 @@
 ---@field UseItemTransferTime boolean
 ---@field ItemTransferSpeedMultiplier number
 ---@field BonusGridSize number
+---@field EnablePlayerInventoryGrid boolean
 -- Smangsty: Global stack-size sandbox option.
 ---@field StackSizeMultiplier number
 ---@field EnableGravity boolean

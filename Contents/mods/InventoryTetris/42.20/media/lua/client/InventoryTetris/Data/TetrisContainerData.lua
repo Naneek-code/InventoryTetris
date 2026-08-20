@@ -20,6 +20,44 @@ TetrisContainerData = {}
 TetrisContainerData._containerDefinitions = {}
 TetrisContainerData._devContainerDefinitions = {}
 
+local PLAYER_INVENTORY_KEY = "none"
+local PLAYER_INVENTORY_GRID_DEFINITION = {
+    gridDefinitions = {{
+        size = {width=4, height=3},
+        position = {x=0, y=0},
+    }},
+    _isDefaultPlayerInventoryGrid = true,
+}
+
+local function isPlayerInventoryGridEnabled()
+    return SandboxVars
+        and SandboxVars.InventoryTetris
+        and SandboxVars.InventoryTetris.EnablePlayerInventoryGrid == true
+end
+
+local function isLegacyPlayerInventoryDefinition(def)
+    local grids = def and def.gridDefinitions
+    if not grids or #grids ~= 2 then
+        return false
+    end
+
+    -- Smangsty: Only replace the bundled two-slot default; any authored metadata means the server's definition wins.
+    for key, _ in pairs(def) do
+        if key ~= "gridDefinitions" and key ~= "corrected" and key ~= "trueType" then
+            return false
+        end
+    end
+
+    local first = grids[1]
+    local second = grids[2]
+    return first and first.size and first.position
+        and second and second.size and second.position
+        and first.size.width == 1 and first.size.height == 1
+        and first.position.x == 0 and first.position.y == 0
+        and second.size.width == 1 and second.size.height == 1
+        and second.position.x == 1 and second.position.y == 0
+end
+
 -- Containers that must never be marked as non-fragile due to java side hardcoding
 -- Without this the disable carry weight feature causes the containers to misbehave
 local MUST_BE_FRAGILE = {
@@ -60,14 +98,24 @@ function TetrisContainerData._getContainerKey(container)
     end
 
     local type = container:getType()
-    if type == "none" then
-        return "none"
+    if type == PLAYER_INVENTORY_KEY then
+        return PLAYER_INVENTORY_KEY
     end
     return type .. "_" .. container:getCapacity()
 end
 
 function TetrisContainerData._getContainerDefinitionByKey(container, containerKey)
-    local def = TetrisContainerData._devContainerDefinitions[containerKey] or TetrisContainerData._containerDefinitions[containerKey]
+    local def = TetrisContainerData._devContainerDefinitions[containerKey]
+    if not def then
+        def = TetrisContainerData._containerDefinitions[containerKey]
+
+        -- Smangsty: Expand the real player ItemContainer so vanilla crafting/cooking still sees its items; authored layouts must continue to win.
+        if containerKey == PLAYER_INVENTORY_KEY and isPlayerInventoryGridEnabled()
+            and (not def or isLegacyPlayerInventoryDefinition(def)) then
+            def = PLAYER_INVENTORY_GRID_DEFINITION
+        end
+    end
+
     if not def then
         def = TetrisContainerCalculator.calculateContainerDefinition(container)
         TetrisContainerData._containerDefinitions[containerKey] = def
