@@ -52,7 +52,10 @@ Events.OnGameBoot.Add(function()
         end
 
         if not SandboxVars.InventoryTetris.UseItemTransferTime then
-            o.maxTime = 0
+            -- Smangsty: MP clients must keep vanilla's -1 wait sentinel until ItemTransactionPacket finishes the transfer.
+            if not isClient() then
+                o.maxTime = 0
+            end
             o.stopOnRun = false
             o.stopOnWalk = false
         else
