@@ -675,6 +675,7 @@ local itemTypeDataCache = {}
 
 ---@class ItemTypeRenderData
 ---@field isFood boolean
+---@field hasOwnHeat boolean
 ---@field isFluidContainer boolean
 ---@field fluidCapacity number
 ---@field isDrainable boolean
@@ -695,6 +696,8 @@ local function getItemTypeData(item, itemType)
 
     local data = {
         isFood = isFood,
+        -- Food and drainables carry their own heat (getHeat) on top of item heat
+        hasOwnHeat = isFood or instanceof(item, "DrainableComboItem"),
         isFluidContainer = isFluidContainer,
         fluidCapacity = fluidCapacity,
         isDrainable = isDrainable,
@@ -889,17 +892,27 @@ function ItemGridUI._bulkRenderGridStacks(drawingContext, renderInstructions, in
             local doVerticalBar = fluidPercent > 0 or hungerPercent < 1.0 or drainPercent < 1.0
 
             -- BACKGROUND EFFECTS
-            if itemTypeData.isFood then
+            -- Heat tint for any item, as vanilla's inventory list does: kettles,
+            -- pots and pans only have item heat. Hot wins over cold.
+            local heat = item:getItemHeat() -- 1 = room, 0.2 = frozen, 3 = max
+            if itemTypeData.hasOwnHeat then
                 ---@cast item Food
-                local heat = item:getHeat() -- 1 = room, 0.2 = frozen, 3 = max
-                if heat < 1.0 then
-                    local coldPercent =  -(heat - 1.0) / 0.8
-                    javaObject:DrawTextureScaledColor(nil, x, y, totalWidth, totalHeight, 0.1, 0.5, 1, alphaMult * coldPercent)
-                elseif heat > 1.0 then
-                    local hotPercent = (heat - 1.0) / 1.5
-                    if hotPercent > 1 then hotPercent = 1 end
-                    javaObject:DrawTextureScaledColor(nil, x, y, totalWidth, totalHeight, 1, 0.0, 0.0, alphaMult * hotPercent)
+                local ownHeat = item:getHeat()
+                if ownHeat > 1.0 or heat > 1.0 then
+                    heat = math.max(ownHeat, heat)
+                else
+                    heat = math.min(ownHeat, heat)
                 end
+                ---@cast item InventoryItem
+            end
+            if heat < 1.0 then
+                local coldPercent =  -(heat - 1.0) / 0.8
+                if coldPercent > 1 then coldPercent = 1 end
+                javaObject:DrawTextureScaledColor(nil, x, y, totalWidth, totalHeight, 0.1, 0.5, 1, alphaMult * coldPercent)
+            elseif heat > 1.0 then
+                local hotPercent = (heat - 1.0) / 1.5
+                if hotPercent > 1 then hotPercent = 1 end
+                javaObject:DrawTextureScaledColor(nil, x, y, totalWidth, totalHeight, 1, 0.0, 0.0, alphaMult * hotPercent)
             end
             -- END BACKGROUND EFFECTS
 
